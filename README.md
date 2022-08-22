@@ -24,6 +24,14 @@ The following files are expected:
   
 # Pipeline
   
+### Combine metadata
+
+* **Key libraries:** stringr
+
+```
+# Import metadata and combine
+scripts/combine_meta.R
+```
 ### Map reads with pseudoalignment software
 
 * **Required software**: kallisto (v0.46.2), samtools (v1.13)
