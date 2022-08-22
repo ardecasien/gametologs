@@ -46,10 +46,19 @@ scripts/import_kallisto.R
 
 ### Normalize, filter, and adjust gene expression
 
-* **Key libraries:** biomaRt, limma
+* **Key libraries:** edgeR, limma
 
 ```
 # Apply filters to gene expression dataset
 scripts/normalize_adjust.R
+```
+
+### Calculate co-expression and coupled co-expression (+ apply spatial quantile normalization)
+
+* **Key libraries:** spqn
+
+```
+# Apply filters to gene expression dataset
+scripts/coexpression_coupled.R
 ```
 
