@@ -41,5 +41,5 @@ sbatch --array=1-$(wc -l checkpoints/samplesF.txt | cut -d ' ' -f 1) scripts/run
 
 ```
 # Import kallisto results into R and combine
-scripts/kallisto_import.R
+scripts/import_kallisto.R
 ```
