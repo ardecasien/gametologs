@@ -27,6 +27,21 @@ mean(subset(s, SEX == 2)$n, na.rm = T)
 
 gam_list = read.csv('gametologs_in_genome.csv')
 
+###################
+## number of genes
+###################
+
+gene_count = data.frame()
+
+for (i in 1:length(tissue.list)){
+  
+  genes = readRDS(paste(tissue.list[i],"_genes_ALL.rds",sep=""))
+  gene_count[i,1] = length(genes)
+  
+}
+
+mean(gene_count$V1)
+
 #######################
 # get co-expression 
 # get coupled co-expression
@@ -58,7 +73,7 @@ for (i in 1:length(tissue.list)){
     coexp_matrix = cor(t(exp_now), use= 'everything', method = 'spearman')
     # coexp_matrix_sig = rcorr(t(exp_now), type = 'spearman')
     
-    # save  
+    # save coexpression matrix
     saveRDS(coexp_matrix, file = paste(tissue.list[i],'_male_coexp.rds',sep=""))
 
     print("estimating normalized co-expression")
@@ -69,17 +84,17 @@ for (i in 1:length(tissue.list)){
     # examine the mean-correlation relationship
     # higher co-expression variance for highly exp genes
     pdf(file = paste(tissue.list[i],'_male_mean_correlation_raw.pdf',sep=""))
-    plot_signal_condition_exp(coexp_matrix, avg_exp, signal=0)
-    plot_signal_condition_exp(coexp_matrix, avg_exp, signal=0.001)
+    print(plot_signal_condition_exp(coexp_matrix, avg_exp, signal=0))
+    print(plot_signal_condition_exp(coexp_matrix, avg_exp, signal=0.001))
     IQR_spqn_list <- get_IQR_condition_exp(coexp_matrix, avg_exp)
-    plot_IQR_condition_exp(IQR_spqn_list)
+    print(plot_IQR_condition_exp(IQR_spqn_list))
     #par(mfrow = c(3,3))
     #for(j in c(1:8,10)){
     #  qqplot_condition_exp(coexp_matrix, avg_exp, j, j)}
     IQR_unlist <- unlist(lapply(1:10, function(ii) IQR_spqn_list$IQR_cor_mat[ii, ii:10]))
-    plot(rep(IQR_spqn_list$grp_mean, times = 1:10),
+    print(plot(rep(IQR_spqn_list$grp_mean, times = 1:10),
          IQR_unlist,
-         xlab="min(average(log2CPM))", ylab="IQR", cex.lab=1.5, cex.axis=1.2, col="blue")
+         xlab="min(average(log2CPM))", ylab="IQR", cex.lab=1.5, cex.axis=1.2, col="blue"))
     dev.off()
     
     ## normalize co-expression matrix
@@ -93,19 +108,18 @@ for (i in 1:length(tissue.list)){
     rownames(cor_m_spqn) = colnames(cor_m_spqn) = rownames(coexp_matrix)
     
     # examine new the mean-correlation relationship
-    
     pdf(file = paste(tissue.list[i],'_male_mean_correlation_norm.pdf',sep=""))
-    plot_signal_condition_exp(cor_m_spqn, avg_exp, signal=0)
-    plot_signal_condition_exp(cor_m_spqn, avg_exp, signal=0.001)
+    print(plot_signal_condition_exp(cor_m_spqn, avg_exp, signal=0))
+    print(plot_signal_condition_exp(cor_m_spqn, avg_exp, signal=0.001))
     IQR_spqn_list <- get_IQR_condition_exp(cor_m_spqn, avg_exp)
-    plot_IQR_condition_exp(IQR_spqn_list)
+    print(plot_IQR_condition_exp(IQR_spqn_list))
     #par(mfrow = c(3,3))
     #for(j in c(1:8,10)){
     #  qqplot_condition_exp(cor_m_spqn, avg_exp, j, j)}
     IQR_unlist <- unlist(lapply(1:10, function(ii) IQR_spqn_list$IQR_cor_mat[ii, ii:10]))
-    plot(rep(IQR_spqn_list$grp_mean, times = 1:10),
+    print(plot(rep(IQR_spqn_list$grp_mean, times = 1:10),
          IQR_unlist,
-         xlab="min(average(log2CPM))", ylab="IQR", cex.lab=1.5, cex.axis=1.2, col="blue")
+         xlab="min(average(log2CPM))", ylab="IQR", cex.lab=1.5, cex.axis=1.2, col="blue"))
     dev.off()
     
     # save
@@ -164,11 +178,64 @@ for (i in 1:length(tissue.list)){
       # save coexpression 
       saveRDS(coexp_matrix, file = paste(tissue.list[i],'_female_coexp.rds',sep=""))
       
+      print("estimating normalized co-expression")
+      
+      # get normalized coexpression matrix
+      avg_exp = rowMeans(exp_now)
+      
+      # examine the mean-correlation relationship
+      # higher co-expression variance for highly exp genes
+      pdf(file = paste(tissue.list[i],'_female_mean_correlation_raw.pdf',sep=""))
+      print(plot_signal_condition_exp(coexp_matrix, avg_exp, signal=0))
+      print(plot_signal_condition_exp(coexp_matrix, avg_exp, signal=0.001))
+      IQR_spqn_list <- get_IQR_condition_exp(coexp_matrix, avg_exp)
+      print(plot_IQR_condition_exp(IQR_spqn_list))
+      #par(mfrow = c(3,3))
+      #for(j in c(1:8,10)){
+      #  qqplot_condition_exp(coexp_matrix, avg_exp, j, j)}
+      IQR_unlist <- unlist(lapply(1:10, function(ii) IQR_spqn_list$IQR_cor_mat[ii, ii:10]))
+      print(plot(rep(IQR_spqn_list$grp_mean, times = 1:10),
+                 IQR_unlist,
+                 xlab="min(average(log2CPM))", ylab="IQR", cex.lab=1.5, cex.axis=1.2, col="blue"))
+      dev.off()
+      
+      ## normalize co-expression matrix
+      ## ngrp = # bins in each row/column to be used to partition the correlation matrix
+      ## size_grp = size of the outer bins to be used to approximate the distribution of the inner bins, in order to smooth the normalization
+      ## the product of size_grp and ngrp must be equal or larger than than the row/column # of cor_mat
+      ## ref_grp = location of the reference bin on the diagonal, whose distribution will be used as target distribution in the normalization
+      dim(coexp_matrix)
+      cor_m_spqn = normalize_correlation(coexp_matrix, ave_exp=avg_exp, 
+                                         ngrp=20, size_grp=1000, ref_grp=18)
+      rownames(cor_m_spqn) = colnames(cor_m_spqn) = rownames(coexp_matrix)
+      
+      # examine new the mean-correlation relationship
+      pdf(file = paste(tissue.list[i],'_female_mean_correlation_norm.pdf',sep=""))
+      print(plot_signal_condition_exp(cor_m_spqn, avg_exp, signal=0))
+      print(plot_signal_condition_exp(cor_m_spqn, avg_exp, signal=0.001))
+      IQR_spqn_list <- get_IQR_condition_exp(cor_m_spqn, avg_exp)
+      print(plot_IQR_condition_exp(IQR_spqn_list))
+      #par(mfrow = c(3,3))
+      #for(j in c(1:8,10)){
+      #  qqplot_condition_exp(cor_m_spqn, avg_exp, j, j)}
+      IQR_unlist <- unlist(lapply(1:10, function(ii) IQR_spqn_list$IQR_cor_mat[ii, ii:10]))
+      print(plot(rep(IQR_spqn_list$grp_mean, times = 1:10),
+                 IQR_unlist,
+                 xlab="min(average(log2CPM))", ylab="IQR", cex.lab=1.5, cex.axis=1.2, col="blue"))
+      dev.off()
+      
+      # save
+      saveRDS(cor_m_spqn, file = paste(tissue.list[i],'_female_coexp_norm.rds',sep=""))
+      
       # remove outputs
       rm(coexp_matrix)
+      rm(cor_m_spqn)
 
     }}
 
     
 
-  
+      
+
+
+
