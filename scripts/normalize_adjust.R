@@ -28,9 +28,9 @@ keep_samples = readRDS('gtex_combined_meta.rds')
 
 gam_list = read.csv('gametologs_in_genome.csv')
 
-###################
-## normalize and filter data
-###################
+######################################
+## normalize, filter, and adjust expression data
+######################################
 
 for (i in 1:length(tissue.list)){
   
@@ -134,6 +134,8 @@ for (i in 1:length(tissue.list)){
     design = model.matrix(~ AGE + SMTSISCH + SMRIN + SMNTRNRT, data=m, na.action=na.pass)
     ym = voom(d, design, plot = T)
     tryCatch(print(table(colnames(ym$E) == m$SAMPID)), error=function(err) NA)
+    
+    # adjust expression levels for age + technical effects
     exp_now_adj_males = tryCatch(removeBatchEffect(ym, covariates=design), error=function(err) NA)
     
     # export residual expression
@@ -171,6 +173,8 @@ for (i in 1:length(tissue.list)){
     design = model.matrix(~ AGE + SMTSISCH + SMRIN + SMNTRNRT, data=f, na.action=na.pass)
     yf = tryCatch(voom(d[,which(colnames(d) %in% f$SAMPID)], design, plot = T), error=function(err) NA)
     tryCatch(print(table(colnames(yf$E) == f$SAMPID)), error=function(err) NA)
+    
+    # adjust expression levels for age + technical effects
     exp_now_adj_females = tryCatch(removeBatchEffect(yf, covariates=design), error=function(err) NA)
     
     # export residual expression
