@@ -1,8 +1,8 @@
 # Gametologue Project
 
-#### Repository for the analysis of human gametologue co-expression
+#### Repository for the analysis of human gametologue co-expression and coupled co-expression
 
-This repository contains scripts used in the analysis of human gametologue co-expression. 
+This repository contains scripts used in the analysis of human gametologue co-expression and coupled co-expression. 
 
 Note that we ran most steps on the NIH ([Biowulf](https://hpc.nih.gov/)) high-performance computing cluster. We have aimed to generalize the code here by removing system-specific references to installed software and modules. Instead, we document required software and version numbers below (excluding standard Unix programs and R). For HPC systems, the required scripts and binaries must be in the PATH. The easiest way to do this is to use an existing module or to install your own. In these cases, the modules should be loaded prior to running the appropriate code below.
 
