@@ -63,9 +63,7 @@ scripts/import_kallisto.R
 scripts/normalize_adjust.R
 ```
 
-### Calculate co-expression and coupled co-expression in males
-### Calculate co-expression in females
-### Including spatial quantile normalization for co-expression
+### Calculate co-expression (males & females), apply spatial quantile normalization, and calculate coupled co-expression (males) 
 
 * **Key libraries:** spqn
 
