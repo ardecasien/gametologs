@@ -16,9 +16,11 @@ The following files are expected:
 
 * GTEx v8 fastq files should be placed in the ```fastq/``` folder with the naming convention ```${sample}/${sample}_1.fastq.gz``` (read 1) and ```${sample}/${sample}_2.fastq.gz``` (read 2).
 
-* The GTEx phenotype file should placed in the ```data/gtex_meta_edit.csv``` folder
+* The GTEx phenotype file should placed in ```data/gtex_meta_edit.csv```
 
-* The GTEx attributes file should placed in the ```data/GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt``` folder
+* The GTEx attributes file should placed in ```data/GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt```
+
+* A .csv file including gametologue information should be placed in ```data/gametologs_in_genome.csv```
   
 # Pipeline
   
@@ -53,7 +55,9 @@ scripts/import_kallisto.R
 scripts/normalize_adjust.R
 ```
 
-### Calculate co-expression and coupled co-expression (+ apply spatial quantile normalization)
+### Calculate co-expression and coupled co-expression in males
+### Calculate co-expression in females
+### Including spatial quantile normalization for co-expression
 
 * **Key libraries:** spqn
 
