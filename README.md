@@ -43,3 +43,13 @@ sbatch --array=1-$(wc -l checkpoints/samplesF.txt | cut -d ' ' -f 1) scripts/run
 # Import kallisto results into R and combine
 scripts/import_kallisto.R
 ```
+
+### Normalize, filter, and adjust gene expression
+
+* **Key libraries:** biomaRt, limma
+
+```
+# Apply filters to gene expression dataset
+scripts/normalize_adjust.R
+```
+
