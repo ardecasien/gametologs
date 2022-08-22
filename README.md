@@ -24,7 +24,7 @@ The following files are expected:
   
 ### Map reads with pseudoalignment software
 
-* **Required software**: kallisto (v0.43.1)
+* **Required software**: kallisto (v0.46.2), samtools (v1.13)
 
 ```
 # Create sex specific transcriptomes and index
