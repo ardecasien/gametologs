@@ -72,3 +72,21 @@ scripts/normalize_adjust.R
 scripts/coexpression_coupled.R
 ```
 
+### Compare to previous results 
+
+* **Key libraries:** ggplot2
+
+```
+# Visualize results
+scripts/compare_to_previous.R
+```
+
+### Visualize co-expression and coupled co-expression in males 
+
+* **Key libraries:** ggplot2
+
+```
+# Visualize results
+scripts/plot_coexpression.R
+```
+
