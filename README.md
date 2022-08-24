@@ -1,4 +1,4 @@
-# Gametologue Project
+# Evolution and disease implications of human X/Y gametologue genes
 
 #### Repository for the analysis of human gametologue co-expression and coupled co-expression
 
