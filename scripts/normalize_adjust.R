@@ -56,8 +56,8 @@ for (i in 1:length(tissue.list)){
     d0 <- DGEList(counts)
     d0 <- calcNormFactors(d0, method = 'TMM')
 
-    # remove low expresssed genes (mean CPM < 3)
-    cutoff = 3
+    # remove low expresssed genes (mean CPM < 5)
+    cutoff = 5
     mean_cpm = rowMeans(cpm(d0))
     drop = names(which(mean_cpm < cutoff))
     d = d0[which(rownames(d0) %!in% drop),]
@@ -67,7 +67,11 @@ for (i in 1:length(tissue.list)){
     # design covariate matrix
     indx = match(colnames(d$counts),m_now$SAMPID) 
     m_now = m_now[indx,]
-    design = model.matrix(~ SEX + AGE + SMTSISCH + SMRIN + SMNTRNRT, data=m_now, na.action=na.pass)
+    m_now$scaleAGE = scale(m_now$AGE)
+    m_now$scaleSMTSISCH = scale(m_now$SMTSISCH)
+    m_now$scaleSMRIN = scale(m_now$SMRIN)
+    m_now$scaleSMNTRNRT = scale(m_now$SMNTRNRT)
+    design = model.matrix(~ scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=m_now, na.action=na.pass)
 
     # normalize data 
     y = voom(d, design, plot = T)
@@ -113,8 +117,8 @@ for (i in 1:length(tissue.list)){
     d0 <- DGEList(counts[,which(colnames(counts) %in% m$SAMPID)])
     d0 <- calcNormFactors(d0, method = 'TMM')
     
-    # remove low expresssed genes (mean CPM < 3)
-    cutoff = 3
+    # remove low expresssed genes (mean CPM < 5)
+    cutoff = 5
     mean_cpm = rowMeans(cpm(d0))
     drop = names(which(mean_cpm < cutoff))
     d = d0[which(rownames(d0) %!in% drop),]
@@ -131,7 +135,11 @@ for (i in 1:length(tissue.list)){
     # design covariate matrix
     indx = match(colnames(d$counts),m$SAMPID) 
     m = m[indx,]
-    design = model.matrix(~ AGE + SMTSISCH + SMRIN + SMNTRNRT, data=m, na.action=na.pass)
+    m$scaleAGE = scale(m$AGE)
+    m$scaleSMTSISCH = scale(m$SMTSISCH)
+    m$scaleSMRIN = scale(m$SMRIN)
+    m$scaleSMNTRNRT = scale(m$SMNTRNRT)
+    design = model.matrix(~ scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=m, na.action=na.pass)
     ym = voom(d, design, plot = T)
     tryCatch(print(table(colnames(ym$E) == m$SAMPID)), error=function(err) NA)
     
@@ -152,8 +160,8 @@ for (i in 1:length(tissue.list)){
     d0 <- DGEList(counts[,which(colnames(counts) %in% f$SAMPID)])
     d0 <- calcNormFactors(d0, method = 'TMM')
     
-    # remove low expresssed genes (mean CPM < 3)
-    cutoff = 3
+    # remove low expresssed genes (mean CPM < 5)
+    cutoff = 5
     mean_cpm = rowMeans(cpm(d0))
     drop = names(which(mean_cpm < cutoff))
     d = d0[which(rownames(d0) %!in% drop),]
@@ -170,7 +178,11 @@ for (i in 1:length(tissue.list)){
     # design covariate matrix
     indx = match(colnames(d$counts),f$SAMPID) 
     f = f[indx,]
-    design = model.matrix(~ AGE + SMTSISCH + SMRIN + SMNTRNRT, data=f, na.action=na.pass)
+    f$scaleAGE = scale(f$AGE)
+    f$scaleSMTSISCH = scale(f$SMTSISCH)
+    f$scaleSMRIN = scale(f$SMRIN)
+    f$scaleSMNTRNRT = scale(f$SMNTRNRT)
+    design = model.matrix(~ scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=f, na.action=na.pass)
     yf = tryCatch(voom(d[,which(colnames(d) %in% f$SAMPID)], design, plot = T), error=function(err) NA)
     tryCatch(print(table(colnames(yf$E) == f$SAMPID)), error=function(err) NA)
     
