@@ -50,7 +50,7 @@ sbatch --array=1-$(wc -l checkpoints/samplesF.txt | cut -d ' ' -f 1) scripts/run
 * **Key libraries:** tximport, rdf5, biomaRt
 
 ```
-# Import kallisto results into R and combine
+# Import male and kallisto results into R and combine
 scripts/import_kallisto.R
 ```
 
@@ -60,6 +60,8 @@ scripts/import_kallisto.R
 
 ```
 # Apply filters to gene expression dataset
+# Normalize data
+# Adjust expression for age + technical effects
 scripts/normalize_adjust.R
 ```
 
@@ -90,22 +92,49 @@ scripts/plot_coexpression.R
 scripts/compare_to_previous.R
 ```
 
-### Calculate differential coupling + perform GO/DO enrichments 
+### Calculate differential coupling 
 
-* **Key libraries:** ggplot2
+* **Key libraries:** clusterProfiler, reshape2
 
 ```
-# Visualize results
-scripts/coupling_GO_DO.R
+# Calculate difference in X vs. Y co-expression per gene
+scripts/calc_coupling.R
 ```
 
 ### Estimate significance of differential coupling 
 
-* **Key libraries:** ggplot2
+* **Key libraries:** parallel, stringr
 
 ```
 # Visualize results
 scripts/coupling_sig.sh
+```
+
+### Visualize differential coupling 
+
+* **Key libraries:** ggplot2
+
+```
+# visualize results
+scripts/visualize_GO_DO.R
+```
+
+### Perform GO/DO enrichments 
+
+* **Key libraries:** ggplot2
+
+```
+# GO and DO analyses
+scripts/GO_DO_coupling.R
+```
+
+### Visualize GO and DO results 
+
+* **Key libraries:** ggplot2
+
+```
+# GO and DO analyses
+scripts/visualize_GO_DO.R
 ```
 
 ### Calculate sex effects on gene expression 
