@@ -106,8 +106,14 @@ scripts/calc_coupling.R
 * **Key libraries:** parallel, stringr
 
 ```
-# Visualize results
-scripts/coupling_sig.sh
+# Create R file
+scripts/coupling_sig.R
+
+# Create swarm file
+scripts/coupling_swarm.R
+
+# Submit jobs
+swarm -f coupling_sig.swarm -g 200 -t 4 --module R/4.1.0
 ```
 
 ### Visualize differential coupling 
