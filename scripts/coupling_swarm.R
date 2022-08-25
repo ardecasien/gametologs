@@ -9,7 +9,7 @@ tissue.list = gsub("[)]","",tissue.list)
 tissue.list = gsub("-","",tissue.list)
 
 for (i in 1:length(tissue.list)){
-	line = paste("Rscript /data/DNU/alex/gtex/XminusY.R", tissue.list[i], sep = " ")
+	line = paste("Rscript /data/DNU/alex/gtex/coupling_sig.R", tissue.list[i], sep = " ")
 	write(line, file = "XminusY.swarm", append = TRUE, sep = "\n")
 	}
   
