@@ -122,7 +122,7 @@ swarm -f coupling_sig.swarm -g 200 -t 4 --module R/4.1.0
 
 ```
 # visualize results
-scripts/visualize_GO_DO.R
+scripts/visualize_coupling.R
 ```
 
 ### Perform GO/DO enrichments 
