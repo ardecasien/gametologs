@@ -90,4 +90,31 @@ scripts/plot_coexpression.R
 scripts/compare_to_previous.R
 ```
 
+### Calculate differential coupling + perform GO/DO enrichments 
+
+* **Key libraries:** ggplot2
+
+```
+# Visualize results
+scripts/coupling_GO_DO.R
+```
+
+### Estimate significance of differential coupling 
+
+* **Key libraries:** ggplot2
+
+```
+# Visualize results
+scripts/coupling_sig.sh
+```
+
+### Calculate sex effects on gene expression 
+
+* **Key libraries:** limma, mashr
+
+```
+# Visualize results
+scripts/calc_sex_biased_expression.R
+```
+
 
