@@ -79,8 +79,7 @@ scripts/sex_dependent_CED_MXY_FXX.R
 scripts/sex_dependent_CED_MX_FXX.R
 
 # Create swarm files
-scripts/sex_dependent_CED_MXY_FXX_swarm.R
-scripts/sex_dependent_CED_MX_FXX_swarm.R
+scripts/sex_dependent_CED_swarm.R
 
 # Submit jobs
 swarm -f sex_dependent_CED_MXY_FXX.swarm -g 200 -t 4 --module R/4.1.0
