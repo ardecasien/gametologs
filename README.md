@@ -50,7 +50,7 @@ sbatch --array=1-$(wc -l checkpoints/samplesF.txt | cut -d ' ' -f 1) scripts/run
 * **Key libraries:** tximport, rdf5, biomaRt
 
 ```
-# Import male and kallisto results into R and combine
+# Import male and female kallisto results into R and combine
 scripts/import_kallisto.R
 ```
 
@@ -65,16 +65,41 @@ scripts/import_kallisto.R
 scripts/normalize_adjust.R
 ```
 
-### Calculate co-expression (males & females), apply spatial quantile normalization, and calculate coupled co-expression (males) 
+### Sex-dependent co-expression divergence (CED)
 
 * **Key libraries:** spqn
 
 ```
-# Apply filters to gene expression dataset
-scripts/coexpression_coupled.R
+# calculate co-expression (in males & females)
+# apply spatial quantile normalization
+# calculate sex-dependent CED 
+
+# Create R files
+scripts/sex_dependent_CED_MXY_FXX.R
+scripts/sex_dependent_CED_MX_FXX.R
+
+# Create swarm files
+scripts/sex_dependent_CED_MXY_FXX_swarm.R
+scripts/sex_dependent_CED_MX_FXX_swarm.R
+
+# Submit jobs
+swarm -f sex_dependent_CED_MXY_FXX.swarm -g 200 -t 4 --module R/4.1.0
+swarm -f sex_dependent_CED_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
+
+# Load and analyze
+scripts/sex_dependent_CED.R
 ```
 
-### Visualize co-expression and coupled co-expression in males 
+### Sex-chromosome-dependent CED in males 
+
+* **Key libraries:** ggplot2
+
+```
+# Visualize results
+scripts/plot_coexpression.R
+```
+
+### Visualize co-expression and sex-chromosome-dependent CED in males 
 
 * **Key libraries:** ggplot2
 
@@ -92,7 +117,7 @@ scripts/plot_coexpression.R
 scripts/compare_to_previous.R
 ```
 
-### Calculate differential coupling 
+### Calculate differential X-Y coupling in males
 
 * **Key libraries:** clusterProfiler, reshape2
 
@@ -101,7 +126,7 @@ scripts/compare_to_previous.R
 scripts/calc_coupling.R
 ```
 
-### Estimate significance of differential coupling 
+### Estimate significance of differential X-Y coupling 
 
 * **Key libraries:** parallel, stringr
 
@@ -139,7 +164,7 @@ scripts/GO_DO_coupling.R
 * **Key libraries:** ggplot2
 
 ```
-# GO and DO analyses
+# visualize results
 scripts/visualize_GO_DO.R
 ```
 
@@ -148,8 +173,22 @@ scripts/visualize_GO_DO.R
 * **Key libraries:** limma, mashr
 
 ```
-# Visualize results
+# estimate sex effects
 scripts/calc_sex_biased_expression.R
+```
+
+### Compare differential X-Y coupling to sex-biased gene expression
+
+```
+# estimate and visualize
+scripts/diff_coupling_versus_sex_biased_expression.R
+```
+
+### Estimate sex differences in co-expression between X-coupled & Y-coupled genes
+
+```
+# estimate and visualize
+scripts/sex_diff_Xcoupled_versus_Ycoupled.R
 ```
 
 
