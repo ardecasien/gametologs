@@ -85,26 +85,36 @@ scripts/sex_dependent_CED_swarm.R
 swarm -f sex_dependent_CED_MXY_FXX.swarm -g 200 -t 4 --module R/4.1.0
 swarm -f sex_dependent_CED_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
 
+```
+
+### Sex-chromosome-dependent co-expression divergence (CED) inmales
+
+* **Key libraries:** spqn
+
+```
+# calculate co-expression (in males)
+# apply spatial quantile normalization
+# calculate differential X-Y coupling
+# calculate sex-chromosome-dependent CED 
+
+# Create R files
+scripts/sex_chr_dependent_CED.R
+
+# Create swarm files
+scripts/sex_chr_dependent_CED_swarm.R
+
+# Submit job
+swarm -f sex_chr_dependent_CED.swarm -g 200 -t 4 --module R/4.1.0
+```
+
+### Load & visualize sex-dependent and sex-chromosome-dependent CED 
+
+* **Key libraries:** ggplot2
+
+```
 # Load and analyze
 scripts/sex_dependent_CED.R
-```
-
-### Sex-chromosome-dependent CED in males 
-
-* **Key libraries:** ggplot2
-
-```
-# Visualize results
-scripts/plot_coexpression.R
-```
-
-### Visualize co-expression and sex-chromosome-dependent CED in males 
-
-* **Key libraries:** ggplot2
-
-```
-# Visualize results
-scripts/plot_coexpression.R
+scripts/sex_chr_dependent_CED.R
 ```
 
 ### Compare to previous results 
@@ -116,40 +126,7 @@ scripts/plot_coexpression.R
 scripts/compare_to_previous.R
 ```
 
-### Calculate differential X-Y coupling in males
-
-* **Key libraries:** clusterProfiler, reshape2
-
-```
-# Calculate difference in X vs. Y co-expression per gene
-scripts/calc_coupling.R
-```
-
-### Estimate significance of differential X-Y coupling 
-
-* **Key libraries:** parallel, stringr
-
-```
-# Create R file
-scripts/coupling_sig.R
-
-# Create swarm file
-scripts/coupling_swarm.R
-
-# Submit jobs
-swarm -f coupling_sig.swarm -g 200 -t 4 --module R/4.1.0
-```
-
-### Visualize differential coupling 
-
-* **Key libraries:** ggplot2
-
-```
-# visualize results
-scripts/visualize_coupling.R
-```
-
-### Perform GO/DO enrichments 
+### Perform GO/DO enrichments on differential X-Y coupling
 
 * **Key libraries:** ggplot2
 
@@ -188,6 +165,13 @@ scripts/diff_coupling_versus_sex_biased_expression.R
 ```
 # estimate and visualize
 scripts/sex_diff_Xcoupled_versus_Ycoupled.R
+```
+
+### Aneuploidy model
+
+```
+# estimate and visualize
+scripts/aneuploidy_analyses.R
 ```
 
 
