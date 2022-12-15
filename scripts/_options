@@ -1,0 +1,49 @@
+library(stringr)
+`%!in%` = Negate(`%in%`)
+
+# sample attributes (N=22951)
+attrib = read.delim('GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt')
+keep_samples = subset(attrib, SMAFRZE == "RNASEQ")
+tissue.list = levels(as.factor(attrib$SMTSD))
+
+# individual phenotypes (N=980)
+pheno = read.csv('gtex_meta_edit.csv')
+colnames(pheno)[2] = 'SAMPID2'
+
+# set region colors
+library(RColorBrewer)
+palette_Dark2 <- colorRampPalette(brewer.pal(17, "Dark2"))
+
+# set gametologue levels
+gam_list = read.csv('gametologs_in_genome.csv')
+gam_list$pair = as.factor(gam_list$pair)
+
+# sex-chromosome-dependent CEFD analyses
+# remove cells/blood + tissues with no males or low sample size (N = 43 tissues)
+remove.tissues = c('Whole Blood','Bladder','Cells - Cultured fibroblasts','Cells - EBV-transformed lymphocytes','Cells - Leukemia cell line (CML)','Cervix - Ectocervix','Cervix - Endocervix','Fallopian Tube','Kidney - Medulla','Ovary','Uterus','Vagina')
+tissue.list = tissue.list[which(tissue.list %!in% remove.tissues)]
+short.listnow = c('ADs','ADv','ADR','ARa','ARc','ARt','AMY','BA24','CAU','CBH','CBL','COR','BA9','HIP','HYP','NAC','PUT','SPC','SBN','MAM','COs','COt','Ega','Em1','Em2','HEa','HEv','KID','LIV','LNG','SAL','MUS','TIB','PAN','PIT','PRO','SKn','SKe','ILM','SPL','STO','TES','THY')
+short.listnow = c('Adipose(Sub)','Adipose(Vis)','Adrenal','Artery(Aor)','Artery(Cor)','Artery(Tib)','Brain(Amy)','Brain(BA24)','Brain(Caud)','Brain(Cblm1)','Brain(Cblm2)','Brain(Cort)','Brain(BA9)','Brain(Hip)','Brain(Hyp)','Brain(NAc)','Brain(Put)','Spinal(C1)','Brain(SBN)','Mammary','Colon(Sig)','Colon(Trans)','Esoph(Gas)','Esoph(Muc)','Esoph(Musc)','Heart(Atr)','Heart(Ven)','Kidney(Cor)','Liver','Lung','Salivary','Muscle','Nerve(Tib)','Pancreas','Pituitary','Prostate','Skin(NoSun)','Skin(Sun)','Ileum','Spleen','Stomach','Testes','Thyroid')
+nospace.list = tissue.list
+nospace.list = str_remove_all(nospace.list, pattern = fixed(" "))
+nospace.list = str_remove_all(nospace.list, pattern = fixed("_"))
+nospace.list = str_remove_all(nospace.list, pattern = fixed("-"))
+nospace.list = str_remove_all(nospace.list, pattern = fixed("("))
+nospace.list = str_remove_all(nospace.list, pattern = fixed(")"))
+tissue.colors = palette_Dark2(43)
+
+# sex-dependent CEFD analyses
+# remove cells/blood + sex-specific/differentiated tissues (PRO, TES, MAM) (N = 40 tissues)
+remove.tissues = c('Whole Blood','Breast - Mammary Tissue','Bladder','Cells - Cultured fibroblasts','Cells - EBV-transformed lymphocytes','Cells - Leukemia cell line (CML)','Cervix - Ectocervix','Cervix - Endocervix','Fallopian Tube','Kidney - Medulla','Ovary','Prostate','Testis','Uterus','Vagina')
+tissue.list = tissue.list[which(tissue.list %!in% remove.tissues)]
+short.listnow = c('ADs','ADv','ADR','ARa','ARc','ARt','AMY','BA24','CAU','CBH','CBL','COR','BA9','HIP','HYP','NAC','PUT','SPC','SBN','COs','COt','Ega','Em1','Em2','HEa','HEv','KID','LIV','LNG','SAL','MUS','TIB','PAN','PIT','SKn','SKe','ILM','SPL','STO','THY')
+short.listnow = c('Adipose(Sub)','Adipose(Vis)','Adrenal','Artery(Aor)','Artery(Cor)','Artery(Tib)','Brain(Amy)','Brain(BA24)','Brain(Caud)','Brain(Cblm1)','Brain(Cblm2)','Brain(Cort)','Brain(BA9)','Brain(Hip)','Brain(Hyp)','Brain(NAc)','Brain(Put)','Spinal(C1)','Brain(SBN)','Colon(Sig)','Colon(Trans)','Esoph(Gas)','Esoph(Muc)','Esoph(Musc)','Heart(Atr)','Heart(Ven)','Kidney(Cor)','Liver','Lung','Salivary','Muscle','Nerve(Tib)','Pancreas','Pituitary','Skin(NoSun)','Skin(Sun)','Ileum','Spleen','Stomach','Thyroid')
+nospace.list = tissue.list
+nospace.list = str_remove_all(nospace.list, pattern = fixed(" "))
+nospace.list = str_remove_all(nospace.list, pattern = fixed("_"))
+nospace.list = str_remove_all(nospace.list, pattern = fixed("-"))
+nospace.list = str_remove_all(nospace.list, pattern = fixed("("))
+nospace.list = str_remove_all(nospace.list, pattern = fixed(")"))
+tissue.colors = tissue.colors[-c(20,36,42)]
+
+
