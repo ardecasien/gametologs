@@ -8,8 +8,7 @@ library(plyr)
 library(dplyr)
 library(Hmisc)
 library(DescTools)
-
-library(spqn, lib.loc = "/home/decasienar/R/4.1/library")
+library(spqn)
 
 `%!in%` = Negate(`%in%`)
 
@@ -72,7 +71,7 @@ print('loading male data')
     print('not enough samples') } else {
 
       # load adjusted expression
-      exp_now = readRDS(file = paste('/data/DNU/alex/gtex/remapped/adj_exp/',arg[1],'adjustedexpMALES.rds',sep=""))
+      exp_now = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpMALES.rds',sep=""))
       exp_now = exp_now[,which(colnames(exp_now) %in% m_now$SAMPID)]
 
       print("combining expression values for gametologues")
@@ -128,7 +127,7 @@ print('loading male data')
       rm(corM_spqn)
       diag(corM_spqn_z) = NA
 
-	print('loading female data')
+	  print('loading female data')
 
       f_now = subset(keep_samples, short_tissue == arg[1] & SAMPID2 %in% f$SAMPID2)
       f_now = f_now[complete.cases(f_now[,c('AGE','SMTSISCH','SMRIN','SMNTRNRT')]),]
@@ -137,7 +136,7 @@ print('loading male data')
         print('not enough samples') } else {
 
           # load adjusted expression
-      		exp_now = readRDS(file = paste('/data/DNU/alex/gtex/remapped/adj_exp/',arg[1],'adjustedexpFEMALES.rds',sep=""))
+      		exp_now = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpFEMALES.rds',sep=""))
           exp_now = exp_now[,which(colnames(exp_now) %in% f_now$SAMPID)]
 
           print("combining expression values for gametologues")
@@ -239,8 +238,8 @@ print('loading male data')
         }
       itmean[b,1] = mean(abs(itgenes$V2))
       }
-
-      mean_p[1,1] = sum(itmean$V1 > mean(abs(gams_cor_diff_mean$diff))) / length(itmean$V1)
+				
+      mean_p[1,1] = sum(abs(itmean$V1) > mean(abs(gams_cor_diff_mean$diff))) / length(itmean$V1)
       mean_p[1,2] = arg[1]
 
       itmean = data.frame()
@@ -257,6 +256,7 @@ print('loading male data')
         itmean[q,1] = gams_cor_diff_mean$gene[q]
         itmean[q,2] = arg[1]
         itmean[q,3] = sum(abs(itgenes$V2) > abs(gams_cor_diff_mean[q,]$diff)) / length(itgenes$V1)
+      
       }
 
       pergam_p = itmean
@@ -268,3 +268,5 @@ saveRDS(out_gam, file = paste(tname,'out_gam_norm.rds',sep=""))
 saveRDS(mean_p, file = paste(tname,'mean_p_norm.rds',sep=""))
 saveRDS(pergam_p, file = paste(tname,'pergam_p_norm.rds',sep=""))
 saveRDS(coexp_out, file = paste(tname,'coexp_out_norm.rds',sep=""))
+
+print('done')
