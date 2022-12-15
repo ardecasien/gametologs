@@ -1,8 +1,8 @@
 # Evolution and disease implications of human X/Y gametologue genes
 
-#### Repository for the analysis of human gametologue co-expression and coupled co-expression
+#### Repository for the analysis of human gametologue sex-dependent and sex-chromosome-dependent co-expression fingerprint divergence (CEFD)
 
-This repository contains scripts used in the analysis of human gametologue co-expression and coupled co-expression. 
+This repository contains scripts used in the analysis of human gametologue sex-dependent and sex-chromosome-dependent co-expression fingerprint divergence (CEFD).
 
 Note that we ran most steps on the NIH ([Biowulf](https://hpc.nih.gov/)) high-performance computing cluster. We have aimed to generalize the code here by removing system-specific references to installed software and modules. Instead, we document required software and version numbers below (excluding standard Unix programs and R). For HPC systems, the required scripts and binaries must be in the PATH. The easiest way to do this is to use an existing module or to install your own. In these cases, the modules should be loaded prior to running the appropriate code below.
 
@@ -65,29 +65,29 @@ scripts/import_kallisto.R
 scripts/normalize_adjust.R
 ```
 
-### Sex-dependent co-expression divergence (CED)
+### Sex-dependent co-expression fingerprint divergence (CEFD)
 
 * **Key libraries:** spqn
 
 ```
 # calculate co-expression (in males & females)
 # apply spatial quantile normalization
-# calculate sex-dependent CED 
+# calculate sex-dependent CEFD 
 
 # Create R files
-scripts/sex_dependent_CED_MXY_FXX.R
-scripts/sex_dependent_CED_MX_FXX.R
+scripts/sex_dependent_CEFD_MXY_FXX.R
+scripts/sex_dependent_CEFD_MX_FXX.R
 
 # Create swarm files
-scripts/sex_dependent_CED_swarm.R
+scripts/sex_dependent_CEFD_swarm.R
 
 # Submit jobs
-swarm -f sex_dependent_CED_MXY_FXX.swarm -g 200 -t 4 --module R/4.1.0
-swarm -f sex_dependent_CED_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
+swarm -f sex_dependent_CEFD_MXY_FXX.swarm -g 200 -t 4 --module R/4.1.0
+swarm -f sex_dependent_CEFD_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
 
 ```
 
-### Sex-chromosome-dependent co-expression divergence (CED) inmales
+### Sex-chromosome-dependent co-expression divergence (CEFD) inmales
 
 * **Key libraries:** spqn
 
@@ -95,16 +95,16 @@ swarm -f sex_dependent_CED_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
 # calculate co-expression (in males)
 # apply spatial quantile normalization
 # calculate differential X-Y coupling
-# calculate sex-chromosome-dependent CED 
+# calculate sex-chromosome-dependent CEFD 
 
 # Create R files
-scripts/sex_chr_dependent_CED.R
+scripts/sex_chr_dependent_CEFD.R
 
 # Create swarm files
-scripts/sex_chr_dependent_CED_swarm.R
+scripts/sex_chr_dependent_CEFD_swarm.R
 
 # Submit job
-swarm -f sex_chr_dependent_CED.swarm -g 200 -t 4 --module R/4.1.0
+swarm -f sex_chr_dependent_CEFD.swarm -g 200 -t 4 --module R/4.1.0
 ```
 
 ### Estimate regulatory and sequence divergence for X-Y gametologues
@@ -116,15 +116,15 @@ swarm -f sex_chr_dependent_CED.swarm -g 200 -t 4 --module R/4.1.0
 scripts/evolutionary_divergence.R
 ```
 
-### Load & visualize sex-dependent and sex-chromosome-dependent CED 
+### Load & visualize sex-dependent and sex-chromosome-dependent CEFD 
 
 * **Key libraries:** ggplot2
 
 ```
 # Load and analyze
-scripts/sex_dependent_CED.R
-scripts/sex_chr_dependent_CED.R
-scripts/compare_sex_dep_sex_chr_dependent_CED.R
+scripts/sex_dependent_CEFD.R
+scripts/sex_chr_dependent_CEFD.R
+scripts/compare_sex_dep_sex_chr_dependent_CEFD.R
 ```
 
 ### Compare differential X-Y coupling to sex-biased gene expression
