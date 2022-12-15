@@ -8,8 +8,7 @@ library(plyr)
 library(dplyr)
 library(Hmisc)
 library(DescTools)
-
-library(spqn, lib.loc = "/home/decasienar/R/4.1/library")
+library(spqn)
 
 `%!in%` = Negate(`%in%`)
 
@@ -72,13 +71,13 @@ print('loading male data')
     print('not enough samples') } else {
 
       # load adjusted expression
-      exp_now = readRDS(file = paste('/data/DNU/alex/gtex/remapped/adj_exp/',arg[1],'adjustedexpMALES.rds',sep=""))
-      exp_now = exp_now[,which(colnames(exp_now) %in% m_now$SAMPID)]
+      exp_M = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpMALES.rds',sep=""))
+      exp_M = exp_M[,which(colnames(exp_M) %in% m_now$SAMPID)]
 
       print("combining expression values for gametologues")
 
-      exp_now2 = exp_now[which(rownames(exp_now) %!in% gam_list$ensembl_id),]
-      gam_exp = exp_now[which(rownames(exp_now) %in% gam_list$ensembl_id),]
+      exp_now2 = exp_M[which(rownames(exp_M) %!in% gam_list$ensembl_id),]
+      gam_exp = exp_M[which(rownames(exp_M) %in% gam_list$ensembl_id),]
       gam_exp_combo = data.frame(matrix(NA, ncol=dim(exp_now2)[2], nrow = 16))
       colnames(gam_exp_combo) = colnames(gam_exp)
 
@@ -123,7 +122,7 @@ print('loading male data')
       rm(corM_spqn)
       diag(corM_spqn_z) = NA
 
-	print('loading female data')
+		print('loading female data')
 
       f_now = subset(keep_samples, short_tissue == arg[1] & SAMPID2 %in% f$SAMPID2)
       f_now = f_now[complete.cases(f_now[,c('AGE','SMTSISCH','SMRIN','SMNTRNRT')]),]
@@ -132,13 +131,13 @@ print('loading male data')
         print('not enough samples') } else {
 
           # load adjusted expression
-      		exp_now = readRDS(file = paste('/data/DNU/alex/gtex/remapped/adj_exp/',arg[1],'adjustedexpFEMALES.rds',sep=""))
-          exp_now = exp_now[,which(colnames(exp_now) %in% f_now$SAMPID)]
+      	  exp_F = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpFEMALES.rds',sep=""))
+          exp_F = exp_F[,which(colnames(exp_F) %in% f_now$SAMPID)]
 
           print("combining expression values for gametologues")
 
-          exp_now2 = exp_now[which(rownames(exp_now) %!in% gam_list$ensembl_id),]
-          gam_exp = exp_now[which(rownames(exp_now) %in% gam_list$ensembl_id),]
+          exp_now2 = exp_F[which(rownames(exp_F) %!in% gam_list$ensembl_id),]
+          gam_exp = exp_F[which(rownames(exp_F) %in% gam_list$ensembl_id),]
           gam_exp_combo = data.frame(matrix(NA, ncol=dim(exp_now2)[2], nrow = 16))
           colnames(gam_exp_combo) = colnames(gam_exp)
 
@@ -215,8 +214,8 @@ print('loading male data')
 
       print('estimating p values')
 
-      corM_mean = rowMeans(corM_spqn_z)
-      corF_mean = rowMeans(corF_spqn_z)
+      corM_mean = rowMeans(corM_spqn_z, na.rm = T)
+      corF_mean = rowMeans(corF_spqn_z, na.rm = T)
       cor_mean = cbind(corM_mean, corF_mean)
       cor_mean = data.frame(rowMeans(cor_mean))
       cor_mean$decile = ntile(cor_mean$rowMeans.cor_mean., 10)
@@ -235,7 +234,7 @@ print('loading male data')
       itmean[b,1] = mean(abs(itgenes$V2))
       }
 
-      mean_p[1,1] = sum(itmean$V1 > mean(abs(gams_cor_diff_mean$diff))) / length(itmean$V1)
+      mean_p[1,1] = sum(abs(itmean$V1) > mean(abs(gams_cor_diff_mean$diff))) / length(itmean$V1)
       mean_p[1,2] = arg[1]
 
       itmean = data.frame()
@@ -255,6 +254,46 @@ print('loading male data')
       }
 
       pergam_p = itmean
+      
+      print('resampling males and females')
+      
+      out_gam_resamp = data.frame()
+    	
+    	for (m in 1:100){
+		
+		print(m)
+		
+		msamp = sample(colnames(exp_M), length(colnames(exp_M)), replace = TRUE)
+		mnow = exp_M[,msamp]
+    	mco = cor(t(mnow), use= 'everything', method = 'spearman')
+    	mavg_exp = rowMeans(mnow)
+    	mnormco = normalize_correlation(mco, ave_exp=mavg_exp, ngrp=20, size_grp=1000, ref_grp=18)
+   		rownames(mnormco) = colnames(mnormco) = rownames(mco)
+   		
+   		fsamp = sample(colnames(exp_F), length(colnames(exp_F)), replace = TRUE)
+		fnow = exp_F[,fsamp]
+    	fco = cor(t(fnow), use= 'everything', method = 'spearman')
+    	favg_exp = rowMeans(fnow)
+    	fnormco = normalize_correlation(fco, ave_exp=favg_exp, ngrp=20, size_grp=1000, ref_grp=18)
+   		rownames(fnormco) = colnames(fnormco) = rownames(fco)
+   		
+   		keep = colnames(mnormco)[which(colnames(mnormco) %in% colnames(fnormco))]
+   		mnormco = mnormco[which(rownames(mnormco) %in% keep), which(colnames(mnormco) %in% keep)]
+        fnormco = fnormco[which(rownames(fnormco) %in% keep), which(colnames(fnormco) %in% keep)]
+   		cor_diff_now = mnormco - fnormco
+      	cor_diff_now = abs(cor_diff_now)
+   		cor_diff_mean_now = rowMeans(cor_diff_now, na.rm = T)
+   		
+   		xgams = subset(gam_list, Gametolog == 'X')$ensembl_id
+      	gams_cor_diff_mean_now = cor_diff_mean_now[which(names(cor_diff_mean_now) %in% xgams)]
+      	gams_cor_diff_mean_now = data.frame(diff = gams_cor_diff_mean_now, tissue = arg[1])
+      	gams_cor_diff_mean_now$ensembl_id = rownames(gams_cor_diff_mean_now)
+      	rownames(gams_cor_diff_mean_now) = NULL
+      	gams_cor_diff_mean_now$it = m
+      	gams_cor_diff_mean_now = merge(gams_cor_diff_mean_now, gam_list[,c('ensembl_id','common_name')], by = 'ensembl_id')
+      	out_gam_resamp = rbind(out_gam_resamp, gams_cor_diff_mean)
+
+		}
 
 tname = levels(as.factor(keep_samples$SMTSD))[which(levels(as.factor(keep_samples$short_tissue))== arg[1])]
 
@@ -263,3 +302,6 @@ saveRDS(out_gam, file = paste(tname,'out_gam_norm_X.rds',sep=""))
 saveRDS(mean_p, file = paste(tname,'mean_p_norm_X.rds',sep=""))
 saveRDS(pergam_p, file = paste(tname,'pergam_p_norm_X.rds',sep=""))
 saveRDS(coexp_out, file = paste(tname,'coexp_out_norm_X.rds',sep=""))
+saveRDS(out_gam_resamp, file = paste(tname,'out_gam_resamp_norm_X.rds',sep=""))
+
+print('done')
