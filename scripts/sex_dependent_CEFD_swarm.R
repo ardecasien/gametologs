@@ -19,11 +19,11 @@ tissue.list = str_remove_all(tissue.list, pattern = fixed("("))
 tissue.list = str_remove_all(tissue.list, pattern = fixed(")"))
 
 for (i in 1:length(tissue.list)) {
-		line = paste("Rscript /checkpoint/sex_dependent_CED_MXY_FXX.R", tissue.list[i], sep = " ")
-		write(line, file = "sex_dependent_CED_MXY_FXX.swarm", append = TRUE, sep = "\n")
+		line = paste("Rscript /checkpoint/sex_dependent_CEFD_MXY_FXX.R", tissue.list[i], sep = " ")
+		write(line, file = "sex_dependent_CEFD_MXY_FXX.swarm", append = TRUE, sep = "\n")
 	}
 	
 for (i in 1:length(tissue.list)) {
-		line = paste("Rscript /checkpoint/sex_dependent_CED_MX_FXX.R", tissue.list[i], sep = " ")
-		write(line, file = "sex_dependent_CED_MX_FXX.swarm", append = TRUE, sep = "\n")
+		line = paste("Rscript /checkpoint/sex_dependent_CEFD_MX_FXX.R", tissue.list[i], sep = " ")
+		write(line, file = "sex_dependent_CEFD_MX_FXX.swarm", append = TRUE, sep = "\n")
 	}
