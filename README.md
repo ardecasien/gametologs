@@ -107,6 +107,15 @@ scripts/sex_chr_dependent_CED_swarm.R
 swarm -f sex_chr_dependent_CED.swarm -g 200 -t 4 --module R/4.1.0
 ```
 
+### Estimate regulatory and sequence divergence for X-Y gametologues
+
+* **Key libraries:** biomaRt
+
+```
+# Load sequences and estimate similarity/divergence measures
+scripts/evolutionary_divergence.R
+```
+
 ### Load & visualize sex-dependent and sex-chromosome-dependent CED 
 
 * **Key libraries:** ggplot2
@@ -115,48 +124,17 @@ swarm -f sex_chr_dependent_CED.swarm -g 200 -t 4 --module R/4.1.0
 # Load and analyze
 scripts/sex_dependent_CED.R
 scripts/sex_chr_dependent_CED.R
+scripts/compare_sex_dep_sex_chr_dependent_CED.R
 ```
 
-### Compare to previous results 
-
-* **Key libraries:** ggplot2
-
-```
-# Visualize results
-scripts/compare_to_previous.R
-```
-
-### Perform GO/DO enrichments on differential X-Y coupling
-
-* **Key libraries:** ggplot2
-
-```
-# GO and DO analyses
-scripts/GO_DO_coupling.R
-```
-
-### Visualize GO and DO results 
-
-* **Key libraries:** ggplot2
-
-```
-# visualize results
-scripts/visualize_GO_DO.R
-```
-
-### Calculate sex effects on gene expression 
+### Compare differential X-Y coupling to sex-biased gene expression
 
 * **Key libraries:** limma, mashr
 
 ```
 # estimate sex effects
 scripts/calc_sex_biased_expression.R
-```
-
-### Compare differential X-Y coupling to sex-biased gene expression
-
-```
-# estimate and visualize
+# compare measures and visualize
 scripts/diff_coupling_versus_sex_biased_expression.R
 ```
 
@@ -167,11 +145,30 @@ scripts/diff_coupling_versus_sex_biased_expression.R
 scripts/sex_diff_Xcoupled_versus_Ycoupled.R
 ```
 
-### Aneuploidy model
+### Perform GO/DO enrichments on differential X-Y coupling
+
+* **Key libraries:** ggplot2
+
+```
+# GO and DO analyses
+scripts/GO_DO_coupling.R
+# visualize results
+scripts/visualize_GO_DO.R
+```
+
+### Analyze differential coupling effects in aneuploidy model
 
 ```
 # estimate and visualize
 scripts/aneuploidy_analyses.R
 ```
 
+### Compare to previous results 
+
+* **Key libraries:** ggplot2
+
+```
+# Load and visualize co-expression comparison
+scripts/compare_to_previous.R
+```
 
