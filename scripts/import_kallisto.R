@@ -17,8 +17,8 @@ names(filesF) = samplesF
 filesM = file.path('/data/NIMH_scratch/GTEx/process/kallisto_ssc/males',samplesM,'abundance.h5')
 names(filesM) = samplesM
 
-txi.kallistoF = tximport(filesF, type = 'kallisto', txOut = TRUE)
-txi.kallistoM = tximport(filesM, type = 'kallisto', txOut = TRUE)
+txi.kallistoF = tximport(filesF, type = 'kallisto', txOut = TRUE, countsFromAbundance="lengthScaledTPM")
+txi.kallistoM = tximport(filesM, type = 'kallisto', txOut = TRUE, countsFromAbundance="lengthScaledTPM")
 
 ## get which Y chr genes are not in females file
 Yadd = rownames(txi.kallistoM$counts)[which(rownames(txi.kallistoM$counts) %!in% rownames(txi.kallistoF$counts))]
