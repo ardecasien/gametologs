@@ -65,29 +65,29 @@ scripts/import_kallisto.R
 scripts/normalize_adjust.R
 ```
 
-### Sex-dependent co-expression fingerprint divergence (CEFD)
+### Sex-dependent co-expression fingerprint divergence (CFD)
 
 * **Key libraries:** spqn
 
 ```
 # calculate co-expression (in males & females)
 # apply spatial quantile normalization
-# calculate sex-dependent CEFD 
+# calculate sex-dependent CFD 
 
 # Create R files
-scripts/sex_dependent_CEFD_MXY_FXX.R
-scripts/sex_dependent_CEFD_MX_FXX.R
+scripts/sex_dependent_CFD_MXY_FXX.R
+scripts/sex_dependent_CFD_MX_FXX.R
 
 # Create swarm files
-scripts/sex_dependent_CEFD_swarm.R
+scripts/sex_dependent_CFD_swarm.R
 
 # Submit jobs
-swarm -f sex_dependent_CEFD_MXY_FXX.swarm -g 200 -t 4 --module R/4.1.0
-swarm -f sex_dependent_CEFD_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
+swarm -f sex_dependent_CFD_MXY_FXX.swarm -g 200 -t 4 --module R/4.1.0
+swarm -f sex_dependent_CFD_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
 
 ```
 
-### Sex-chromosome-dependent co-expression divergence (CEFD) inmales
+### Sex-chromosome-dependent co-expression divergence (CFD) inmales
 
 * **Key libraries:** spqn
 
@@ -95,19 +95,43 @@ swarm -f sex_dependent_CEFD_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
 # calculate co-expression (in males)
 # apply spatial quantile normalization
 # calculate differential X-Y coupling
-# calculate sex-chromosome-dependent CEFD 
+# calculate sex-chromosome-dependent CFD 
 
 # Create R files
-scripts/sex_chr_dependent_CEFD.R
+scripts/sex_chr_dependent_CFD.R
 
 # Create swarm files
-scripts/sex_chr_dependent_CEFD_swarm.R
+scripts/sex_chr_dependent_CFD_swarm.R
 
 # Submit job
-swarm -f sex_chr_dependent_CEFD.swarm -g 200 -t 4 --module R/4.1.0
+swarm -f sex_chr_dependent_CFD.swarm -g 200 -t 4 --module R/4.1.0
 ```
 
-### Estimate regulatory and sequence divergence for X-Y gametologues
+### Load & visualize sex-dependent and sex-chromosome-dependent CFD 
+
+* **Key libraries:** ggplot2
+
+```
+# Load and analyze
+scripts/sex_dependent_CFD.R
+scripts/sex_chr_dependent_CFD.R
+scripts/compare_sex_dep_sex_chr_dependent_CFD.R
+```
+
+### Inviestigate the patterns and distributions of asymmetric coupling
+
+* **Key libraries:** biomaRt
+
+```
+# ANOVA, variance partitioning, dimensionality reduction
+# clustering
+# GO annotation
+scripts/asymmetric_coupling.R
+# Sex chromosome enrichment
+scripts/asymmetric_coupling.R
+```
+
+### Estimate regulatory and sequence divergence for X-Y gametologs
 
 * **Key libraries:** biomaRt
 
@@ -116,18 +140,21 @@ swarm -f sex_chr_dependent_CEFD.swarm -g 200 -t 4 --module R/4.1.0
 scripts/evolutionary_divergence.R
 ```
 
-### Load & visualize sex-dependent and sex-chromosome-dependent CEFD 
-
-* **Key libraries:** ggplot2
+### Estimate expression-weighted asymmetric coupling
 
 ```
-# Load and analyze
-scripts/sex_dependent_CEFD.R
-scripts/sex_chr_dependent_CEFD.R
-scripts/compare_sex_dep_sex_chr_dependent_CEFD.R
+# estimate expression-weighted asymmetric coupling
+scripts/exp_weighted_asymmetric_coupling.R
 ```
 
-### Compare differential X-Y coupling to sex-biased gene expression
+### CLIP (significance of asymmetric coupling)
+
+```
+# estimate expression-weighted asymmetric coupling
+scripts/CLIP.R
+```
+
+### Compare asymmetric X-Y coupling to sex-biased gene expression
 
 * **Key libraries:** limma, mashr
 
@@ -135,7 +162,7 @@ scripts/compare_sex_dep_sex_chr_dependent_CEFD.R
 # estimate sex effects
 scripts/calc_sex_biased_expression.R
 # compare measures and visualize
-scripts/diff_coupling_versus_sex_biased_expression.R
+scripts/asymmetric_versus_sex_biased_expression.R
 ```
 
 ### Estimate sex differences in co-expression between X-coupled & Y-coupled genes
@@ -145,7 +172,7 @@ scripts/diff_coupling_versus_sex_biased_expression.R
 scripts/sex_diff_Xcoupled_versus_Ycoupled.R
 ```
 
-### Perform GO/DO enrichments on differential X-Y coupling
+### Perform GO/DO enrichments on asymmetric X-Y coupling
 
 * **Key libraries:** ggplot2
 
@@ -156,11 +183,13 @@ scripts/GO_DO_coupling.R
 scripts/visualize_GO_DO.R
 ```
 
-### Analyze differential coupling effects in aneuploidy model
+### ASD risk gene enrichment analyses
+
+* **Key libraries:** ggplot2
 
 ```
-# estimate and visualize
-scripts/aneuploidy_analyses.R
+# GO and DO analyses
+scripts/ASD_enrichments.R
 ```
 
 ### Compare to previous results 
