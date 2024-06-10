@@ -1,14 +1,14 @@
-# Evolution and disease implications of human X/Y gametologue genes
+# Evolutionary divergence between homologous X-Y chromosome genes shapes sex-biased biology
 
-#### Repository for the analysis of human gametologue sex-dependent and sex-chromosome-dependent co-expression fingerprint divergence (CEFD)
+#### Repository for the analysis of human gametolog sex-dependent and sex-chromosome-dependent co-expression fingerprint divergence (CFD)
 
-This repository contains scripts used in the analysis of human gametologue sex-dependent and sex-chromosome-dependent co-expression fingerprint divergence (CEFD).
+This repository contains scripts used in the analysis of human gametolog sex-dependent and sex-chromosome-dependent co-expression fingerprint divergence (CFD).
 
 Note that we ran most steps on the NIH ([Biowulf](https://hpc.nih.gov/)) high-performance computing cluster. We have aimed to generalize the code here by removing system-specific references to installed software and modules. Instead, we document required software and version numbers below (excluding standard Unix programs and R). For HPC systems, the required scripts and binaries must be in the PATH. The easiest way to do this is to use an existing module or to install your own. In these cases, the modules should be loaded prior to running the appropriate code below.
 
 As Biowulf uses the [slurm](https://slurm.schedmd.com/documentation.html) scheduler, most code below should run on slurm systems with little or no modification. For non-slurm HPC systems, slurm scripts and environmental variables will need to be adjusted, though hopefully without too much hassle.
 
-We ran most analysis steps using [R](https://cran.r-project.org/) (v4.1.2). We recommend the following utility or visualization packages to extend base R's functionality.
+We ran most analysis steps using [R](https://cran.r-project.org/) (v4.1). We recommend the following utility or visualization packages to extend base R's functionality.
 
 # Inputs
 
@@ -20,7 +20,7 @@ The following files are expected:
 
 * The GTEx attributes file should placed in ```data/GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt```
 
-* A .csv file including gametologue information should be placed in ```data/gametologs_in_genome.csv```
+* A .csv file including gametolog information should be placed in ```data/gametologs_in_genome.csv```
   
 # Pipeline
   
