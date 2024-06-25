@@ -1,26 +1,49 @@
-library(parallel)
+library(limma)
+library(matrixStats)
+library(tidyverse)
+library(data.table)
+library(readr)
 library(stringr)
-library(DescTools)
+library(plyr)
 library(dplyr)
-library(maditr)
-library(spqn)
-library(mosaic)
+library(Hmisc)
+library(DescTools)
+library(biomaRt)
+library(RColorBrewer)
+
+library(spqn, lib.loc = "/home/decasienar/R/4.1/library")
 
 `%!in%` = Negate(`%in%`)
 
 print('loading data')  
 
-attrib = read.delim('GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt')
+attrib = read.delim('/data/NIMH_scratch/decasienar/gtex/remapped/remapped/GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt')
 head(attrib)
 keep_samples = subset(attrib, SMAFRZE == "RNASEQ")
-table(keep_samples$SMTSD)
 tissue.list = levels(as.factor(attrib$SMTSD))
-remove.tissues = c('Whole Blood','Bladder','Cells - Cultured fibroblasts','Cells - EBV-transformed lymphocytes','Cells - Leukemia cell line (CML)','Cervix - Ectocervix','Cervix - Endocervix','Fallopian Tube','Kidney - Medulla','Ovary','Uterus','Vagina')
-listnow = tissue.list[which(tissue.list %!in% remove.tissues)]
-short.listnow = c('ADs','ADv','ADR','ARa','ARc','ARt','AMY','BA24','CAU','CBH','CBL','COR','BA9','HIP','HYP','NAC','PUT','SPC','SBN','MAM','COs','COt','Ega','Em1','Em2','HEa','HEv','KID','LIV','LNG','SAL','MUS','TIB','PAN','PIT','PRO','SKn','SKe','ILM','SPL','STO','TES','THY')
-short.listnow = c('Adipose(Sub)','Adipose(Vis)','Adrenal','Artery(Aor)','Artery(Cor)','Artery(Tib)','Brain(Amy)','Brain(BA24)','Brain(Caud)','Brain(Cblm1)','Brain(Cblm2)','Brain(Cort)','Brain(BA9)','Brain(Hip)','Brain(Hyp)','Brain(NAc)','Brain(Put)','Spinal(C1)','Brain(SBN)','Mammary','Colon(Sig)','Colon(Trans)','Esoph(Gas)','Esoph(Muc)','Esoph(Musc)','Heart(Atr)','Heart(Ven)','Kidney(Cor)','Liver','Lung','Salivary','Muscle','Nerve(Tib)','Pancreas','Pituitary','Prostate','Skin(NoSun)','Skin(Sun)','Ileum','Spleen','Stomach','Testes','Thyroid')
 
-gam_list = read.csv('gametologs_in_genome.csv')
+pheno = read.csv('/data/NIMH_scratch/decasienar/gtex/remapped/remapped/gtex_meta_edit.csv')
+colnames(pheno)[2] = 'SAMPID2'
+head(pheno)
+table(pheno$SEX)
+
+remove.tissues = c('Whole Blood','Breast - Mammary Tissue','Bladder','Cells - Cultured fibroblasts','Cells - EBV-transformed lymphocytes','Cells - Leukemia cell line (CML)','Cervix - Ectocervix','Cervix - Endocervix','Fallopian Tube','Kidney - Medulla','Ovary','Prostate','Testis','Uterus','Vagina')
+tissue.list = tissue.list[which(tissue.list %!in% remove.tissues)]
+short.listnow = c('Adipose(Sub)','Adipose(Vis)','Adrenal','Artery(Aor)','Artery(Cor)','Artery(Tib)','Brain(Amy)','Brain(BA24)','Brain(Caud)','Brain(Cblm1)','Brain(Cblm2)','Brain(Cort)','Brain(BA9)','Brain(Hip)','Brain(Hyp)','Brain(NAc)','Brain(Put)','Spinal(C1)','Brain(SBN)','Colon(Sig)','Colon(Trans)','Esoph(Gas)','Esoph(Muc)','Esoph(Musc)','Heart(Atr)','Heart(Ven)','Kidney(Cor)','Liver','Lung','Salivary','Muscle','Nerve(Tib)','Pancreas','Pituitary','Skin(NoSun)','Skin(Sun)','Ileum','Spleen','Stomach','Thyroid')
+
+## upload meta data
+
+keep_samples = readRDS('gtex_combined_meta.rds')
+keep_samples$short_tissue = keep_samples$SMTSD
+keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = fixed(" "))
+keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = fixed("_"))
+keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = fixed("-"))
+keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = fixed("("))
+keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = fixed(")"))
+
+# gametologs
+
+gam_list = read.csv('/data/NIMH_scratch/decasienar/gtex/remapped/remapped/gametologs_in_genome.csv')
 colnames(gam_list)[3] = 'ensembl_gene_id'
 gam_list$pair = as.factor(gam_list$pair)
 
@@ -29,10 +52,45 @@ for (i in 1:length(levels(gam_list$pair))){
   genes_now = subset(gam_list, pair == levels(gam_list$pair)[i])
   pairs$pairs[i] = paste(subset(genes_now, Gametolog=='X')$common_name,"&",subset(genes_now, Gametolog=='Y')$common_name)}
 
+## upload genes
+
+gene2chrom = readRDS('gene2chrom.rds')
+auto = subset(gene2chrom, chromosome_name %in% c(1:22))
+
+## upload data
+
 arg = commandArgs(trailingOnly=TRUE)
 
-coexp_now = readRDS(paste('norm_coexp/',arg[1],'malecoexpnorm.rds',sep="")) 
-m_exp =  readRDS(paste('adj_exp/',arg[1],'adjustedexpMALES.rds',sep="")) 
+print('loading male data')
+
+	m = subset(pheno, SEX == 1)
+
+  m_now = subset(keep_samples, short_tissue == arg[1] & SAMPID2 %in% m$SAMPID2)
+  m_now = m_now[complete.cases(m_now[,c('AGE','SMTSISCH','SMRIN','SMNTRNRT')]),]
+
+  if(length(m_now$SAMPID) == 0) {
+    print('not enough samples') } else {
+
+      # load adjusted expression
+      exp_now = readRDS(file = paste('/data/DNU/alex/gtex/remapped_lengthScaledTPM/adj_exp/',arg[1],'_adjusted_exp_MALES.rds',sep=""))
+      exp_now = exp_now[,which(colnames(exp_now) %in% m_now$SAMPID)]
+
+# print('subset to autosomal genes')
+
+# exp_now = exp_now[which(rownames(exp_now) %in% c(auto$ensembl_gene_id, gam_list$ensembl_gene_id)),]
+
+print('normalizing male correlation')
+
+      corM = cor(t(exp_now), use= 'everything', method = 'spearman')
+
+      avg_exp = rowMeans(exp_now)
+      coexp_now = normalize_correlation(corM, ave_exp=avg_exp,
+                                         ngrp=20, size_grp=1000, ref_grp=18)
+      rownames(coexp_now) = colnames(coexp_now) = rownames(corM)
+      coexp_now[which(coexp_now == 1)] = 0.999999999999
+	rm(corM)
+
+	saveRDS(coexp_now, file = paste('remapped_lengthScaledTPM/norm_coexp/',arg,'_malecoexpnorm.rds',sep="")) 
 
 genes = length(rownames(coexp_now)[rownames(coexp_now) %!in% gam_list$ensembl_gene_id])
 avg_diffz = matrix(ncol=length(levels(gam_list$pair)), nrow=length(rownames(coexp_now)[rownames(coexp_now) %!in% gam_list$ensembl_gene_id]))
@@ -41,6 +99,7 @@ print('analyzing each gametologue pair')
 
 diff_coupling_res = data.frame()
 xy_ced_res = data.frame()
+diff_it_res = data.frame()
 
 for (k in 1:length(levels(gam_list$pair))){
     
@@ -53,11 +112,13 @@ for (k in 1:length(levels(gam_list$pair))){
     print('calc actual difference')
     
     diffz = tryCatch(FisherZ(outnow$x_coexp) - FisherZ(outnow$y_coexp), error=function(err) NA)
-    
+    diffz[which(diffz == Inf)] = NA
+    diffz[which(diffz == -Inf)] = NA
+
     # combine results
     
     outnow$diff = tryCatch(diffz, error=function(err) NA)
-    
+      	
     print('calc significance of differential coupling (approach 1)')
     
     # scramble x and y coupling 1000x
@@ -140,7 +201,9 @@ for (k in 1:length(levels(gam_list$pair))){
     }
     
     print('combining per gene diff coupling results with other gametologues')
-  
+  	
+  	outnow$gene = rownames(outnow)
+  	rownames(outnow) = NULL
   	diff_coupling_res = rbind(diff_coupling_res, outnow)
 
     print('calc significance of mean sex-chr-dep CED')
@@ -167,15 +230,15 @@ for (k in 1:length(levels(gam_list$pair))){
 
     }
     
-	print('calc significance of differential coupling (resampling approach)')
+    print('calc significance of differential coupling (resampling approach)')
     
     resamp = data.frame()
     for (m in 1:100){
 		print(m)
-		msamp = sample(colnames(m_exp), replace = TRUE)
-		mnow = m_exp[,msamp]
+		msamp = sample(colnames(exp_now), replace = TRUE)
+		mnow = exp_now[,msamp]
     	mco = cor(t(mnow), use= 'everything', method = 'spearman')
-    	mavg_exp = rowMeans(m_exp)
+    	mavg_exp = rowMeans(mnow)
     	mnormco = normalize_correlation(mco, ave_exp=mavg_exp, ngrp=20, size_grp=1000, ref_grp=18)
    		rownames(mnormco) = colnames(mnormco) = rownames(mco)
    		
@@ -187,14 +250,51 @@ for (k in 1:length(levels(gam_list$pair))){
     		mout = tryCatch(mout[which(rownames(mout) %!in% gam_list$ensembl_gene_id),], error=function(err) NA)
     		mout = tryCatch(mout[complete.cases(mout),], error=function(err) NA)    
     		mdiff = tryCatch(FisherZ(mout$x_coexp) - FisherZ(mout$y_coexp), error=function(err) NA)
+    		mdiff[which(mdiff == Inf)] = NA
+			mdiff[which(mdiff == -Inf)] = NA
     		meanit = mean(mdiff, na.rm = T)
     		meanabsit = mean(abs(mdiff), na.rm = T)
     		outnow = data.frame(tissue = arg[1], pair = levels(gam_list$pair)[k], meanit = meanit, meanabsit = meanabsit, it = m)
     		resamp = rbind(resamp, outnow)
     }}
     
-saveRDS(diff_coupling_res, file = paste(arg[1],'_xy_coupling_res.rds',sep=""))
-saveRDS(xy_ced_res, file = paste(arg[1],'_sexchr_dep_ced_res.rds',sep=""))
-saveRDS(resamp, file = paste(arg[1],'_xy_resamp.rds',sep=""))
+    print('calc mean and significance')
+
+    # get actual mean per gene (across gametologues)
+	mean_diff_per_gene = diff_coupling_res %>% group_by(gene) %>% dplyr::summarise(mean_diff = mean(diff, na.rm = T))
+	mean_diff_per_gene = mean_diff_per_gene[complete.cases(mean_diff_per_gene),]
+	
+	# get iterated mean per gene (across gametologues)
+
+	pairs_now = levels(as.factor(diff_coupling_res$pair))
+	out_mean = matrix(NA, nrow = dim(mean_diff_per_gene)[1],ncol = 1000)
+	for(i in 1:1000){
+	print(i)
+	mean_it = matrix(NA, nrow = dim(mean_diff_per_gene)[1],ncol = length(pairs_now))
+	for (m in 1:length(pairs_now)){
+		dnow = subset(diff_coupling_res, pair == pairs_now[m])
+		xy_it = tryCatch(data.frame(x_coexp = sample(dnow$x_coexp, size = length(dnow$x_coexp)), y_coexp = sample(dnow$y_coexp, size = length(dnow$y_coexp))) , error=function(err) NA)
+   		diff_it =  tryCatch(FisherZ(xy_it$x_coexp) - FisherZ(xy_it$y_coexp), error=function(err) NA)
+   		mean_it[,m] = diff_it
+   	}
+   		mean_it = data.frame(mean_it)
+   		mean_now = rowMeans(mean_it, na.rm = T)
+   		out_mean[,i] = mean_now
+	}
+
+	# estimate per gene mean p values 
+	diff_coupling_mean_res = mean_diff_per_gene
+	diff_coupling_mean_res = data.frame(diff_coupling_mean_res)
+	for(l in 1:length(diff_coupling_mean_res$gene)) {
+		diff_coupling_mean_res$p[l] = (sum(abs(out_mean[l,]) > abs(diff_coupling_mean_res$mean_diff[l])))/1000}
+
+	diff_coupling_mean_res$padj = p.adjust(diff_coupling_mean_res$p, method = 'BH')
+
+    }
     
+saveRDS(diff_coupling_res, file = paste("remapped_lengthScaledTPM/",arg,'_xy_coupling_res.rds',sep=""))
+saveRDS(xy_ced_res, file = paste("remapped_lengthScaledTPM/",arg,'_sexchr_dep_ced_res.rds',sep=""))
+saveRDS(resamp, file = paste("remapped_lengthScaledTPM/",arg,'_xy_resamp.rds',sep=""))
+saveRDS(diff_coupling_mean_res, file = paste("remapped_lengthScaledTPM/",arg,'_xy_coupling_mean_res.rds',sep=""))
+
 print('done')
