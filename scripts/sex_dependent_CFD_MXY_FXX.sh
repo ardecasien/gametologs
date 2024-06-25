@@ -8,27 +8,26 @@ library(plyr)
 library(dplyr)
 library(Hmisc)
 library(DescTools)
+library(biomaRt)
+library(RColorBrewer)
 library(spqn)
+
 
 `%!in%` = Negate(`%in%`)
 
 # set options
 
-attrib = read.delim('GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt')
+attrib = read.delim('/data/NIMH_scratch/decasienar/gtex/remapped/remapped/GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt')
 head(attrib)
 keep_samples = subset(attrib, SMAFRZE == "RNASEQ")
 tissue.list = levels(as.factor(attrib$SMTSD))
 
-pheno = read.csv('gtex_meta_edit.csv')
+pheno = read.csv('/data/NIMH_scratch/decasienar/gtex/remapped/remapped/gtex_meta_edit.csv')
 colnames(pheno)[2] = 'SAMPID2'
 head(pheno)
 table(pheno$SEX)
 
-library(RColorBrewer)
 palette_Dark2 <- colorRampPalette(brewer.pal(17, "Dark2"))
-
-gam_list = read.csv('gametologs_in_genome.csv')
-gam_list$pair = as.factor(gam_list$pair)
 
 remove.tissues = c('Whole Blood','Breast - Mammary Tissue','Bladder','Cells - Cultured fibroblasts','Cells - EBV-transformed lymphocytes','Cells - Leukemia cell line (CML)','Cervix - Ectocervix','Cervix - Endocervix','Fallopian Tube','Kidney - Medulla','Ovary','Prostate','Testis','Uterus','Vagina')
 tissue.list = tissue.list[which(tissue.list %!in% remove.tissues)]
@@ -44,9 +43,14 @@ keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = 
 keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = fixed("("))
 keep_samples$short_tissue = str_remove_all(keep_samples$short_tissue, pattern = fixed(")"))
 
-gam_list = read.csv('gametologs_in_genome.csv')
+gam_list = read.csv('/data/NIMH_scratch/decasienar/gtex/remapped/remapped/gametologs_in_genome.csv')
 pairs = levels(as.factor(gam_list$pair))
 pairs = pairs[-14]
+
+## upload genes
+
+gene2chrom = readRDS('gene2chrom.rds')
+auto = subset(gene2chrom, chromosome_name %in% c(1:22))
 
 # get X+Y co-expression IN MALES (only if X or both X and Y available)
 # get X co-expression IN FEMALES
@@ -54,9 +58,12 @@ pairs = pairs[-14]
 m = subset(pheno, SEX == 1)
 f = subset(pheno, SEX == 2)
 
+out_all_s = data.frame()
+out_gam_s = data.frame()
 out_all = data.frame()
 out_gam = data.frame()
 mean_p = data.frame()
+mean_p_strict = data.frame()
 pergam_p = data.frame()
 coexp_out = data.frame()
 
@@ -71,13 +78,17 @@ print('loading male data')
     print('not enough samples') } else {
 
       # load adjusted expression
-      exp_now = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpMALES.rds',sep=""))
-      exp_now = exp_now[,which(colnames(exp_now) %in% m_now$SAMPID)]
+      exp_M = readRDS(file = paste('/data/DNU/alex/gtex/remapped_lengthScaledTPM/adj_exp/',arg[1],'_adjusted_exp_MALES.rds',sep=""))
+      exp_M = exp_M[,which(colnames(exp_M) %in% m_now$SAMPID)]
 
-      print("combining expression values for gametologues")
+# print('subset to autosomal genes')
 
-      exp_now2 = exp_now[which(rownames(exp_now) %!in% gam_list$ensembl_id),]
-      gam_exp = exp_now[which(rownames(exp_now) %in% gam_list$ensembl_id),]
+# exp_M = exp_M[which(rownames(exp_M) %in% c(auto$ensembl_gene_id, gam_list$ensembl_id)),]
+
+print("combining expression values for gametologues")
+
+      exp_now2 = exp_M[which(rownames(exp_M) %!in% gam_list$ensembl_id),]
+      gam_exp = exp_M[which(rownames(exp_M) %in% gam_list$ensembl_id),]
       gam_exp_combo = data.frame(matrix(NA, ncol=dim(exp_now2)[2], nrow = 16))
       colnames(gam_exp_combo) = colnames(gam_exp)
 
@@ -97,37 +108,34 @@ print('loading male data')
           print('Both X/Y members not available') } else if (xcount == 0 && ycount == 1) {
             print('Only Y member available') } else if (xcount == 1 && ycount == 0) {
 
-              print('Only X member available')
-              gam_tot2 = gam_tot[,1]
-              gam_mat = tryCatch(c(gam_tot2), error=function(err) NA)
-              gam_exp_combo[j,] = gam_mat
-              rownames(gam_exp_combo)[j] = paste(xnow$common_name, ynow$common_name, sep = "&") } else {
+              print('Only X member available') } else {
 
                 gam_tot2 = tryCatch(rowSums(t(gam_exp[which(rownames(gam_exp) %in% c(xnow$ensembl_id, ynow$ensembl_id)),])), error=function(err) NA)
                 gam_mat = tryCatch(c(gam_tot2), error=function(err) NA)
                 gam_exp_combo[j,] = gam_mat
                 rownames(gam_exp_combo)[j] = paste(xnow$common_name, ynow$common_name, sep = "&")
               }
-      }}
+      }
+      }
 
       gam_exp_combo = gam_exp_combo[rowSums(is.na(gam_exp_combo)) != ncol(gam_exp_combo), ]
       exp_now2 = rbind(exp_now2, gam_exp_combo)
       corM = cor(t(exp_now2), use= 'everything', method = 'spearman')
 
-      print('normalizing male correlation')
+print('normalizing male correlation')
 
       avg_exp = rowMeans(exp_now2)
       corM_spqn = normalize_correlation(corM, ave_exp=avg_exp,
                                          ngrp=20, size_grp=1000, ref_grp=18)
       rownames(corM_spqn) = colnames(corM_spqn) = rownames(corM)
       corM_spqn[which(corM_spqn == 1)] = 0.999999999999
-      rm(corM)
+	rm(corM)
 
       corM_spqn_z = apply(corM_spqn, 1, FisherZ)
       rm(corM_spqn)
       diag(corM_spqn_z) = NA
 
-	  print('loading female data')
+print('loading female data')
 
       f_now = subset(keep_samples, short_tissue == arg[1] & SAMPID2 %in% f$SAMPID2)
       f_now = f_now[complete.cases(f_now[,c('AGE','SMTSISCH','SMRIN','SMNTRNRT')]),]
@@ -136,13 +144,17 @@ print('loading male data')
         print('not enough samples') } else {
 
           # load adjusted expression
-      		exp_now = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpFEMALES.rds',sep=""))
-          exp_now = exp_now[,which(colnames(exp_now) %in% f_now$SAMPID)]
+      	exp_F = readRDS(file = paste('/data/DNU/alex/gtex/remapped_lengthScaledTPM/adj_exp/',arg[1],'_adjusted_exp_FEMALES.rds',sep=""))
+        exp_F = exp_F[,which(colnames(exp_F) %in% f_now$SAMPID)]
 
-          print("combining expression values for gametologues")
+# print('subset to autosomal genes')
 
-          exp_now2 = exp_now[which(rownames(exp_now) %!in% gam_list$ensembl_id),]
-          gam_exp = exp_now[which(rownames(exp_now) %in% gam_list$ensembl_id),]
+# exp_F = exp_F[which(rownames(exp_F) %in% c(auto$ensembl_gene_id, gam_list$ensembl_id)),]
+
+print("combining expression values for gametologues")
+
+          exp_now2 = exp_F[which(rownames(exp_F) %!in% gam_list$ensembl_id),]
+          gam_exp = exp_F[which(rownames(exp_F) %in% gam_list$ensembl_id),]
           gam_exp_combo = data.frame(matrix(NA, ncol=dim(exp_now2)[2], nrow = 16))
           colnames(gam_exp_combo) = colnames(gam_exp)
 
@@ -162,20 +174,21 @@ print('loading male data')
                 gam_exp_combo[j,] = gam_mat
                 rownames(gam_exp_combo)[j] = paste(xnow$common_name, ynow$common_name, sep = "&")
               }
-          }}
+          }
+          }
 
       gam_exp_combo = gam_exp_combo[rowSums(is.na(gam_exp_combo)) != ncol(gam_exp_combo), ]
       exp_now2 = rbind(exp_now2, gam_exp_combo)
       corF = cor(t(exp_now2), use= 'everything', method = 'spearman')
 
-      print('normalizing female correlation')
+print('normalizing female correlation')
 
       avg_exp = rowMeans(exp_now2)
       corF_spqn = normalize_correlation(corF, ave_exp=avg_exp,
                                         ngrp=20, size_grp=1000, ref_grp=18)
       rownames(corF_spqn) = colnames(corF_spqn) = rownames(corF)
       corF_spqn[which(corF_spqn == 1)] = 0.999999999999
-      rm(corF)
+      	rm(corF)
 
       corF_spqn_z = apply(corF_spqn, 1, FisherZ)
       rm(corF_spqn)
@@ -185,7 +198,10 @@ print('loading male data')
       corM_spqn_z = corM_spqn_z[which(rownames(corM_spqn_z) %in% keep), which(colnames(corM_spqn_z) %in% keep)]
       corF_spqn_z = corF_spqn_z[which(rownames(corF_spqn_z) %in% keep), which(colnames(corF_spqn_z) %in% keep)]
 
-      print('saving sex-specific gametologue co-expression fingerprints')
+print('saving sex-specific gametologue co-expression fingerprints')
+
+saveRDS(corM_spqn_z, file = paste("remapped_lengthScaledTPM/",arg,'_corM_spqn_z.rds',sep=""))
+saveRDS(corF_spqn_z, file = paste("remapped_lengthScaledTPM/",arg,'_corF_spqn_z.rds',sep=""))
 
       gams = colnames(corM_spqn_z)[which(grepl("&", colnames(corM_spqn_z)) == TRUE)]
       corM_spqn_z_gam = corM_spqn_z[,which(colnames(corM_spqn_z) %in% gams)]
@@ -199,7 +215,24 @@ print('loading male data')
       rownames(coexp_out) = coexp_out$Row.names
       coexp_out = coexp_out[,-1]
 
-      print('calculating sex difference')
+print('calculating signed sex difference')
+
+      cor_diff = corM_spqn_z - corF_spqn_z
+      cor_diff_mean = rowMeans(cor_diff, na.rm = T)
+      gams = names(cor_diff_mean)[which(grepl("&", names(cor_diff_mean)) == TRUE)]
+      gams_cor_diff_mean = cor_diff_mean[gams]
+      cor_diff_mean = cor_diff_mean[which(names(cor_diff_mean) %!in% gams)]
+
+      cor_diff_mean = data.frame(diff = cor_diff_mean, tissue = arg[1])
+      cor_diff_mean$gene = rownames(cor_diff_mean)
+      rownames(cor_diff_mean) = NULL
+      out_all_s = rbind(out_all_s, cor_diff_mean)
+      gams_cor_diff_mean = data.frame(diff = gams_cor_diff_mean, tissue = arg[1])
+      gams_cor_diff_mean$gene = rownames(gams_cor_diff_mean)
+      rownames(gams_cor_diff_mean) = NULL
+      out_gam_s = rbind(out_gam_s, gams_cor_diff_mean)
+
+print('calculating absolute sex difference')
 
       cor_diff = corM_spqn_z - corF_spqn_z
       cor_diff = abs(cor_diff)
@@ -217,7 +250,7 @@ print('loading male data')
       rownames(gams_cor_diff_mean) = NULL
       out_gam = rbind(out_gam, gams_cor_diff_mean)
 
-      print('estimating p values')
+print('estimating p values')
 
       corM_mean = rowMeans(corM_spqn_z, na.rm = T)
       corF_mean = rowMeans(corF_spqn_z, na.rm = T)
@@ -260,13 +293,124 @@ print('loading male data')
       }
 
       pergam_p = itmean
+      
+print('estimating p values - strict (match for CORUM + expression breadth)')
+	
+	  corum = read.csv('CORUM.csv')
+	  corum = merge(corum, gene2chrom[,c('external_gene_name','ensembl_gene_id')], by = 'external_gene_name')
+	  be = readRDS('broadly-expressed-gams.rds')
+	
+	  gams2 = data.frame(pair = gams)
+	  gams2[,c(2,3)] = str_split_fixed(gams2$pair, "&", 2)
+	  gams2$corum = ifelse(gams2$V2 %in% corum$external_gene_name | gams2$V3 %in% corum$external_gene_name, "corum", "not")
+	  gams2$be = ifelse(gams2$pair %in% be$gene, "be", "not")
+	   	  
+      corM_mean = rowMeans(corM_spqn_z, na.rm = T)
+      corF_mean = rowMeans(corF_spqn_z, na.rm = T)
+      cor_mean = cbind(corM_mean, corF_mean)
+      cor_mean = data.frame(rowMeans(cor_mean))
+      cor_mean$decile = ntile(cor_mean$rowMeans.cor_mean., 10)
+      cor_mean_nogams = cor_mean[which(rownames(cor_mean) %!in% gams),]
+      
+      be_all = readRDS('broadly-expressed-genes.rds')
+      cor_mean_nogams$corum = ifelse(rownames(cor_mean_nogams) %in% corum$ensembl_gene_id, 'corum','not')
+      cor_mean_nogams$be = ifelse(rownames(cor_mean_nogams) %in% be_all$gene, 'be','not')
+      table(cor_mean_nogams$corum)
+      table(cor_mean_nogams$be)
+     
+      itmean = data.frame()
+      for(b in 1:1000){
+        itgenes = data.frame()
+        for(q in 1:length(gams2$pair)){
+        decnow = cor_mean[which(rownames(cor_mean) == gams2$pair[q]),]$decile
+        genesnow = rownames(subset(cor_mean_nogams, decile == decnow & corum == gams2$corum[q] & be == gams2$be[q]))
+        matchgene = sample(genesnow, 1)
+        itgenes[q,1] = matchgene
+        itgenes[q,2] = subset(cor_diff_mean, gene == matchgene)$diff
+        }
+      itmean[b,1] = mean(abs(itgenes$V2))
+      }
+				
+      mean_p_strict[1,1] = sum(abs(itmean$V1) > mean(abs(gams_cor_diff_mean$diff))) / length(itmean$V1)
+      mean_p_strict[1,2] = arg[1]
 
-tname = levels(as.factor(keep_samples$SMTSD))[which(levels(as.factor(keep_samples$short_tissue))== arg[1])]
+print('resampling males and females')
 
-saveRDS(out_all, file = paste(tname,'out_all_norm.rds',sep=""))
-saveRDS(out_gam, file = paste(tname,'out_gam_norm.rds',sep=""))
-saveRDS(mean_p, file = paste(tname,'mean_p_norm.rds',sep=""))
-saveRDS(pergam_p, file = paste(tname,'pergam_p_norm.rds',sep=""))
-saveRDS(coexp_out, file = paste(tname,'coexp_out_norm.rds',sep=""))
+# Define the function that will be reused
+process_samples <- function(exp_data, gam_list, pairs, gender_label) {
+  samp <- sample(colnames(exp_data), length(colnames(exp_data)), replace = TRUE)
+  now <- exp_data[, samp]
+  now2 <- now[!(rownames(now) %in% gam_list$ensembl_id), ]
+  gam_exp <- now[rownames(now) %in% gam_list$ensembl_id, ]
+  gam_exp_combo <- matrix(NA, ncol = ncol(now2), nrow = length(pairs))
+  colnames(gam_exp_combo) <- colnames(gam_exp)
+  rownames(gam_exp_combo) <- pairs  # Ensure rownames are set to pairs for consistency
+
+  for (j in seq_along(pairs)) {
+    xnow <- subset(gam_list, pair == pairs[j] & Gametolog == 'X')
+    ynow <- subset(gam_list, pair == pairs[j] & Gametolog == 'Y')
+    gam_tot <- gam_exp[rownames(gam_exp) %in% c(xnow$ensembl_id, ynow$ensembl_id), , drop = FALSE]
+
+    if (nrow(gam_tot) > 0) {
+      gam_mat <- tryCatch(rowSums(t(gam_tot)), error = function(err) NA)
+      gam_exp_combo[j, ] <- gam_mat
+      rownames(gam_exp_combo)[j] <- paste(xnow$common_name, ynow$common_name, sep = "&")
+    }
+  }
+
+  gam_exp_combo <- gam_exp_combo[rowSums(is.na(gam_exp_combo)) != ncol(gam_exp_combo), , drop = FALSE]
+  now2 <- rbind(now2, gam_exp_combo)
+  co <- cor(t(now2), use = 'everything', method = 'spearman')
+  avg_exp <- rowMeans(now2)
+  normco <- normalize_correlation(co, ave_exp = avg_exp, ngrp = 20, size_grp = 1000, ref_grp = 18)
+  rownames(normco) <- colnames(normco) <- rownames(co)
+  normco
+}
+
+# Initialize result data frame
+out_gam_resamp <- data.frame()
+
+# Loop over iterations
+for (m in 1:100) {
+  print(m)
+
+  # Process males
+  mnormco <- process_samples(exp_M, gam_list, pairs, "male")
+
+  # Process females
+  fnormco <- process_samples(exp_F, gam_list, pairs, "female")
+
+  # Get common columns
+  keep <- intersect(colnames(mnormco), colnames(fnormco))
+  mnormco <- mnormco[keep, keep]
+  fnormco <- fnormco[keep, keep]
+
+  # Calculate correlation difference
+  cor_diff_now <- abs(mnormco - fnormco)
+  cor_diff_mean_now <- rowMeans(cor_diff_now, na.rm = TRUE)
+
+  # Extract gametologs
+  gams <- grep("&", names(cor_diff_mean_now), value = TRUE)
+  gams_cor_diff_mean_now <- cor_diff_mean_now[gams]
+  gams_cor_diff_mean_now <- data.frame(
+    diff = gams_cor_diff_mean_now,
+    tissue = arg[1],
+    pair = names(gams_cor_diff_mean_now),
+    it = m
+  )
+
+  # Append to the result data frame
+  out_gam_resamp <- rbind(out_gam_resamp, gams_cor_diff_mean_now)
+}
+
+saveRDS(out_all_s, file = paste("remapped_lengthScaledTPM/",arg,'_out_all_signed_norm.rds',sep=""))
+saveRDS(out_gam_s, file = paste("remapped_lengthScaledTPM/",arg,'_out_gam_signed_norm.rds',sep=""))
+saveRDS(out_all, file = paste("remapped_lengthScaledTPM/",arg,'_out_all_norm.rds',sep=""))
+saveRDS(out_gam, file = paste("remapped_lengthScaledTPM/",arg,'_out_gam_norm.rds',sep=""))
+saveRDS(mean_p, file = paste("remapped_lengthScaledTPM/",arg,'_mean_p_norm.rds',sep=""))
+saveRDS(mean_p_strict, file = paste("remapped_lengthScaledTPM/",arg,'_mean_p_strict_norm.rds',sep=""))
+saveRDS(pergam_p, file = paste("remapped_lengthScaledTPM/",arg,'_pergam_p_norm.rds',sep=""))
+saveRDS(coexp_out, file = paste("remapped_lengthScaledTPM/",arg,'_coexp_out_norm.rds',sep=""))
+saveRDS(out_gam_resamp, file = paste("remapped_lengthScaledTPM/",arg,'_out_gam_resamp_norm_XY.rds',sep=""))
 
 print('done')
