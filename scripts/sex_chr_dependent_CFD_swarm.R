@@ -19,6 +19,6 @@ tissue.list = str_remove_all(tissue.list, pattern = fixed("("))
 tissue.list = str_remove_all(tissue.list, pattern = fixed(")"))
 
 for (i in 1:length(tissue.list)) {
-		line = paste("Rscript /data/DNU/alex/gtex/remapped/sex_chr_dep_CEFD.R", tissue.list[i], sep = " ")
-		write(line, file = "sex_chr_dep_CEFD.swarm", append = TRUE, sep = "\n")
+		line = paste("Rscript /data/DNU/alex/gtex/remapped/sex_chr_dependent_CFD.R", tissue.list[i], sep = " ")
+		write(line, file = "sex_chr_dependent_CFD.swarm", append = TRUE, sep = "\n")
 	}
