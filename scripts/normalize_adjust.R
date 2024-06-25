@@ -18,7 +18,6 @@ library(edgeR)
 
 txi.gene = readRDS('gtex_kallisto_genes.rds')
 counts_all = txi.gene$counts
-tpm_all = log2(txi.gene$abundance+0.1)
 
 ###################
 ## upload meta data
@@ -71,7 +70,7 @@ for (i in 1:length(tissue.list)){
     m_now$scaleSMTSISCH = scale(m_now$SMTSISCH)
     m_now$scaleSMRIN = scale(m_now$SMRIN)
     m_now$scaleSMNTRNRT = scale(m_now$SMNTRNRT)
-    design = model.matrix(~ scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=m_now, na.action=na.pass)
+    design = model.matrix(~ SEX + scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=m_now, na.action=na.pass)
 
     # normalize data 
     y = voom(d, design, plot = T)
@@ -100,7 +99,7 @@ for (i in 1:length(tissue.list)){
     saveRDS(samp, paste(tissue.list[i],"_samples_ALL.rds",sep=""))
     
     # prune and export voom for sex-biased expression
-    design = model.matrix(~ SEX + AGE + SMTSISCH + SMRIN + SMNTRNRT, data=m_now, na.action=na.pass)
+    design = model.matrix(~ SEX + scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=m_now, na.action=na.pass)
     y = voom(d[,which(colnames(d) %in% m_now$SAMPID)], design, plot = T)
     print(table(colnames(y$E) == m_now$SAMPID))
     
@@ -139,6 +138,7 @@ for (i in 1:length(tissue.list)){
     m$scaleSMTSISCH = scale(m$SMTSISCH)
     m$scaleSMRIN = scale(m$SMRIN)
     m$scaleSMNTRNRT = scale(m$SMNTRNRT)
+    
     design = model.matrix(~ scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=m, na.action=na.pass)
     ym = voom(d, design, plot = T)
     tryCatch(print(table(colnames(ym$E) == m$SAMPID)), error=function(err) NA)
@@ -182,7 +182,8 @@ for (i in 1:length(tissue.list)){
     f$scaleSMTSISCH = scale(f$SMTSISCH)
     f$scaleSMRIN = scale(f$SMRIN)
     f$scaleSMNTRNRT = scale(f$SMNTRNRT)
-    design = model.matrix(~ scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=f, na.action=na.pass)
+    
+                                 design = model.matrix(~ scaleAGE + scaleSMTSISCH + scaleSMRIN + scaleSMNTRNRT, data=f, na.action=na.pass)
     yf = tryCatch(voom(d[,which(colnames(d) %in% f$SAMPID)], design, plot = T), error=function(err) NA)
     tryCatch(print(table(colnames(yf$E) == f$SAMPID)), error=function(err) NA)
     
