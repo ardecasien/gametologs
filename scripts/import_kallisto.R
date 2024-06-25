@@ -54,13 +54,14 @@ idx = match(rownames(txi.kallisto$abundance), rownames(txi.kallisto$length))
 txi.kallisto$length = txi.kallisto$length[idx,]
 
 ## convert to counts per gene
-hsap = useMart(biomart = 'ENSEMBL_MART_ENSEMBL',dataset='hsapiens_gene_ensembl') 
+hsap = useMart(biomart = 'ENSEMBL_MART_ENSEMBL',dataset='hsapiens_gene_ensembl',version=104) 
 
 ## get a file that matches ensembl transcripts (with version appended) to ensembl genes
 tx2gene = getBM(attributes=c('ensembl_transcript_id_version', 'ensembl_gene_id','external_gene_name','chromosome_name','start_position','end_position'), filters = 'ensembl_transcript_id_version', values = rownames(txi.kallisto$abundance), mart = hsap)
+saveRDS(tx2gene, file = 'tx2gene.rds')
 
 ## summarize your kallisto mapped data to the gene level
-txi.gene = summarizeToGene(txi.kallisto, tx2gene) # transcripts missing from tx2gene: 3651
+txi.gene = summarizeToGene(txi.kallisto, tx2gene, countsFromAbundance = "lengthScaledTPM") 
 
 ## save gene-level 
 saveRDS(txi.gene, file = "gtex_kallisto_genes.rds")
