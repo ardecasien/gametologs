@@ -68,6 +68,10 @@ print('loading male data')
   m_now = subset(keep_samples, short_tissue == arg[1] & SAMPID2 %in% m$SAMPID2)
   m_now = m_now[complete.cases(m_now[,c('AGE','SMTSISCH','SMRIN','SMNTRNRT')]),]
 
+  # subsample to N = 66 males
+  # samp = sample(m_now$SAMPID, 66)
+  # m_now = subset(m_now, SAMPID %in% samp)
+
   if(length(m_now$SAMPID) == 0) {
     print('not enough samples') } else {
 
