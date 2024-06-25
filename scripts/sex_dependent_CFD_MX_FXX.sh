@@ -34,6 +34,11 @@ remove.tissues = c('Whole Blood','Breast - Mammary Tissue','Bladder','Cells - Cu
 tissue.list = tissue.list[which(tissue.list %!in% remove.tissues)]
 short.listnow = c('Adipose(Sub)','Adipose(Vis)','Adrenal','Artery(Aor)','Artery(Cor)','Artery(Tib)','Brain(Amy)','Brain(BA24)','Brain(Caud)','Brain(Cblm1)','Brain(Cblm2)','Brain(Cort)','Brain(BA9)','Brain(Hip)','Brain(Hyp)','Brain(NAc)','Brain(Put)','Spinal(C1)','Brain(SBN)','Colon(Sig)','Colon(Trans)','Esoph(Gas)','Esoph(Muc)','Esoph(Musc)','Heart(Atr)','Heart(Ven)','Kidney(Cor)','Liver','Lung','Salivary','Muscle','Nerve(Tib)','Pancreas','Pituitary','Skin(NoSun)','Skin(Sun)','Ileum','Spleen','Stomach','Thyroid')
 
+## upload genes
+
+gene2chrom = readRDS('gene2chrom.rds')
+auto = subset(gene2chrom, chromosome_name %in% c(1:22))
+
 ## upload meta data
 
 keep_samples = readRDS('gtex_combined_meta.rds')
@@ -71,10 +76,14 @@ print('loading male data')
     print('not enough samples') } else {
 
       # load adjusted expression
-      exp_M = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpMALES.rds',sep=""))
+      	exp_M = readRDS(file = paste('/data/DNU/alex/gtex/remapped_lengthScaledTPM/adj_exp/',arg[1],'_adjusted_exp_MALES.rds',sep=""))
       exp_M = exp_M[,which(colnames(exp_M) %in% m_now$SAMPID)]
 
-      print("combining expression values for gametologues")
+# print('subset to autosomal genes')
+
+# exp_M = exp_M[which(rownames(exp_M) %in% c(auto$ensembl_gene_id, gam_list$ensembl_id)),]
+
+print("getting male X")
 
       exp_now2 = exp_M[which(rownames(exp_M) %!in% gam_list$ensembl_id),]
       gam_exp = exp_M[which(rownames(exp_M) %in% gam_list$ensembl_id),]
@@ -109,7 +118,7 @@ print('loading male data')
       exp_now2 = rbind(exp_now2, gam_exp_combo)
       corM = cor(t(exp_now2), use= 'everything', method = 'spearman')
 
-      print('normalizing male correlation')
+print('normalizing male correlation')
 
       avg_exp = rowMeans(exp_now2)
       corM_spqn = normalize_correlation(corM, ave_exp=avg_exp,
@@ -122,7 +131,7 @@ print('loading male data')
       rm(corM_spqn)
       diag(corM_spqn_z) = NA
 
-		print('loading female data')
+print('loading female data')
 
       f_now = subset(keep_samples, short_tissue == arg[1] & SAMPID2 %in% f$SAMPID2)
       f_now = f_now[complete.cases(f_now[,c('AGE','SMTSISCH','SMRIN','SMNTRNRT')]),]
@@ -131,10 +140,14 @@ print('loading male data')
         print('not enough samples') } else {
 
           # load adjusted expression
-      	  exp_F = readRDS(file = paste('/adj_exp/',arg[1],'adjustedexpFEMALES.rds',sep=""))
+      	exp_F = readRDS(file = paste('/data/DNU/alex/gtex/remapped_lengthScaledTPM/adj_exp/',arg[1],'_adjusted_exp_FEMALES.rds',sep=""))
           exp_F = exp_F[,which(colnames(exp_F) %in% f_now$SAMPID)]
 
-          print("combining expression values for gametologues")
+# print('subset to autosomal genes')
+
+# exp_F = exp_F[which(rownames(exp_F) %in% c(auto$ensembl_gene_id, gam_list$ensembl_id)),]
+
+print("getting female X")
 
           exp_now2 = exp_F[which(rownames(exp_F) %!in% gam_list$ensembl_id),]
           gam_exp = exp_F[which(rownames(exp_F) %in% gam_list$ensembl_id),]
@@ -163,7 +176,7 @@ print('loading male data')
       exp_now2 = rbind(exp_now2, gam_exp_combo)
       corF = cor(t(exp_now2), use= 'everything', method = 'spearman')
 
-      print('normalizing female correlation')
+print('normalizing female correlation')
 
       avg_exp = rowMeans(exp_now2)
       corF_spqn = normalize_correlation(corF, ave_exp=avg_exp,
@@ -180,7 +193,10 @@ print('loading male data')
       corM_spqn_z = corM_spqn_z[which(rownames(corM_spqn_z) %in% keep), which(colnames(corM_spqn_z) %in% keep)]
       corF_spqn_z = corF_spqn_z[which(rownames(corF_spqn_z) %in% keep), which(colnames(corF_spqn_z) %in% keep)]
 
-      print('saving sex-specific gametologue co-expression fingerprints')
+print('saving sex-specific gametologue co-expression fingerprints')
+
+saveRDS(corM_spqn_z, file = paste("remapped_lengthScaledTPM/",arg,'_corM_spqn_z_X.rds',sep=""))
+saveRDS(corF_spqn_z, file = paste("remapped_lengthScaledTPM/",arg,'_corF_spqn_z_X.rds',sep=""))
 
       gams = colnames(corM_spqn_z)[which(grepl("&", colnames(corM_spqn_z)) == TRUE)]
       corM_spqn_z_gam = corM_spqn_z[,which(colnames(corM_spqn_z) %in% gams)]
@@ -194,7 +210,7 @@ print('loading male data')
       rownames(coexp_out) = coexp_out$Row.names
       coexp_out = coexp_out[,-1]
 
-      print('calculating sex difference')
+print('calculating absolute sex difference')
 
       cor_diff = corM_spqn_z - corF_spqn_z
       cor_diff = abs(cor_diff)
@@ -212,7 +228,7 @@ print('loading male data')
       rownames(gams_cor_diff_mean) = NULL
       out_gam = rbind(out_gam, gams_cor_diff_mean)
 
-      print('estimating p values')
+print('estimating p values')
 
       corM_mean = rowMeans(corM_spqn_z, na.rm = T)
       corF_mean = rowMeans(corF_spqn_z, na.rm = T)
@@ -255,7 +271,7 @@ print('loading male data')
 
       pergam_p = itmean
       
-      print('resampling males and females')
+print('resampling males and females')
       
       out_gam_resamp = data.frame()
     	
@@ -291,17 +307,16 @@ print('loading male data')
       	rownames(gams_cor_diff_mean_now) = NULL
       	gams_cor_diff_mean_now$it = m
       	gams_cor_diff_mean_now = merge(gams_cor_diff_mean_now, gam_list[,c('ensembl_id','common_name')], by = 'ensembl_id')
-      	out_gam_resamp = rbind(out_gam_resamp, gams_cor_diff_mean)
+      	out_gam_resamp = rbind(out_gam_resamp, gams_cor_diff_mean_now)
 
 		}
 
-tname = levels(as.factor(keep_samples$SMTSD))[which(levels(as.factor(keep_samples$short_tissue))== arg[1])]
-
-saveRDS(out_all, file = paste(tname,'out_all_norm_X.rds',sep=""))
-saveRDS(out_gam, file = paste(tname,'out_gam_norm_X.rds',sep=""))
-saveRDS(mean_p, file = paste(tname,'mean_p_norm_X.rds',sep=""))
-saveRDS(pergam_p, file = paste(tname,'pergam_p_norm_X.rds',sep=""))
-saveRDS(coexp_out, file = paste(tname,'coexp_out_norm_X.rds',sep=""))
-saveRDS(out_gam_resamp, file = paste(tname,'out_gam_resamp_norm_X.rds',sep=""))
+saveRDS(out_all, file = paste("remapped_lengthScaledTPM/",arg,'_out_all_norm_X.rds',sep=""))
+saveRDS(out_gam, file = paste("remapped_lengthScaledTPM/",arg,'_out_gam_norm_X.rds',sep=""))
+saveRDS(mean_p, file = paste("remapped_lengthScaledTPM/",arg,'_mean_p_norm_X.rds',sep=""))
+saveRDS(pergam_p, file = paste("remapped_lengthScaledTPM/",arg,'_pergam_p_norm_X.rds',sep=""))
+saveRDS(coexp_out, file = paste("remapped_lengthScaledTPM/",arg,'_coexp_out_norm_X.rds',sep=""))
+saveRDS(out_gam_resamp, file = paste("remapped_lengthScaledTPM/",arg,'_out_gam_resamp_norm_X.rds',sep=""))
 
 print('done')
+
