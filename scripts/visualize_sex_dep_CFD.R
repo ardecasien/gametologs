@@ -218,7 +218,7 @@ resamp_X = readRDS('resamp_X_auto.rds')
 
 #### end ####
 
-#### Figures S2, 2C Table S2 ####
+#### Figures S3, 2C Table S2 ####
 
 pl = data.frame()
 all_norm = data.frame()
@@ -250,7 +250,7 @@ table(pl$code2)
 table(is.na(pl$code))
 table(is.na(pl$code2))
 
-# Figure S2
+# Figure S3
 
 cl = dcast(gene ~ tissue, value.var = 'z', data = pl)
 rownames(cl) = cl$gene
@@ -803,7 +803,7 @@ ggarrange(p1, p2, p3, p4, p5, p6, ncol = 2, nrow = 3)
 #### compare all vs. autosomal only ####
 
 ## absolute & signed sex dep CFD (per tissue & pair)
-## Figure SX
+## Figure S4
 
 out_gam = readRDS('out_gam_norm.rds')
 out_gam_auto = readRDS('out_gam_norm_auto.rds')
