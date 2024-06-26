@@ -113,9 +113,9 @@ swarm -f sex_chr_dependent_CFD.swarm -g 200 -t 4 --module R/4.1.0
 
 ```
 # Load and analyze
-scripts/sex_dependent_CFD.R
-scripts/sex_chr_dependent_CFD.R
-scripts/compare_sex_dep_sex_chr_dependent_CFD.R
+scripts/visualize_sex_dependent_CFD.R
+scripts/visualize_sex_chr_dependent_CFD.R
+scripts/compare_sex_dep_vs_sex_chr_dependent_CFD.R
 ```
 
 ### Inviestigate the patterns and distributions of asymmetric coupling
@@ -126,7 +126,6 @@ scripts/compare_sex_dep_sex_chr_dependent_CFD.R
 # ANOVA, variance partitioning, dimensionality reduction
 # clustering
 # GO annotation
-scripts/asymmetric_coupling.R
 # Sex chromosome enrichment
 scripts/asymmetric_coupling.R
 ```
