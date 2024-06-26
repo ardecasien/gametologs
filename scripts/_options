@@ -18,8 +18,9 @@ palette_Dark2 <- colorRampPalette(brewer.pal(17, "Dark2"))
 gam_list = read.csv('gametologs_in_genome.csv')
 gam_list$pair = as.factor(gam_list$pair)
 
-# sex-chromosome-dependent CEFD analyses
+# sex-chromosome-dependent CFD analyses
 # remove cells/blood + tissues with no males or low sample size (N = 43 tissues)
+
 remove.tissues = c('Whole Blood','Bladder','Cells - Cultured fibroblasts','Cells - EBV-transformed lymphocytes','Cells - Leukemia cell line (CML)','Cervix - Ectocervix','Cervix - Endocervix','Fallopian Tube','Kidney - Medulla','Ovary','Uterus','Vagina')
 tissue.list = tissue.list[which(tissue.list %!in% remove.tissues)]
 short.listnow = c('ADs','ADv','ADR','ARa','ARc','ARt','AMY','BA24','CAU','CBH','CBL','COR','BA9','HIP','HYP','NAC','PUT','SPC','SBN','MAM','COs','COt','Ega','Em1','Em2','HEa','HEv','KID','LIV','LNG','SAL','MUS','TIB','PAN','PIT','PRO','SKn','SKe','ILM','SPL','STO','TES','THY')
@@ -32,8 +33,9 @@ nospace.list = str_remove_all(nospace.list, pattern = fixed("("))
 nospace.list = str_remove_all(nospace.list, pattern = fixed(")"))
 tissue.colors = palette_Dark2(43)
 
-# sex-dependent CEFD analyses
+# sex-dependent CFD analyses
 # remove cells/blood + sex-specific/differentiated tissues (PRO, TES, MAM) (N = 40 tissues)
+
 remove.tissues = c('Whole Blood','Breast - Mammary Tissue','Bladder','Cells - Cultured fibroblasts','Cells - EBV-transformed lymphocytes','Cells - Leukemia cell line (CML)','Cervix - Ectocervix','Cervix - Endocervix','Fallopian Tube','Kidney - Medulla','Ovary','Prostate','Testis','Uterus','Vagina')
 tissue.list = tissue.list[which(tissue.list %!in% remove.tissues)]
 short.listnow = c('ADs','ADv','ADR','ARa','ARc','ARt','AMY','BA24','CAU','CBH','CBL','COR','BA9','HIP','HYP','NAC','PUT','SPC','SBN','COs','COt','Ega','Em1','Em2','HEa','HEv','KID','LIV','LNG','SAL','MUS','TIB','PAN','PIT','SKn','SKe','ILM','SPL','STO','THY')
