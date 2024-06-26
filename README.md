@@ -87,7 +87,7 @@ swarm -f sex_dependent_CFD_MX_FXX.swarm -g 200 -t 4 --module R/4.1.0
 
 ```
 
-### Sex-chromosome-dependent co-expression divergence (CFD) inmales
+### Sex-chromosome-dependent co-expression divergence (CFD) in males
 
 * **Key libraries:** spqn
 
@@ -118,6 +118,15 @@ scripts/visualize_sex_chr_dependent_CFD.R
 scripts/compare_sex_dep_vs_sex_chr_dependent_CFD.R
 ```
 
+### Estimate regulatory and sequence divergence for X-Y gametologs
+
+* **Key libraries:** biomaRt
+
+```
+# Load sequences and estimate similarity/divergence measures
+scripts/evolutionary_divergence.R
+```
+
 ### Inviestigate the patterns and distributions of asymmetric coupling
 
 * **Key libraries:** biomaRt
@@ -128,15 +137,6 @@ scripts/compare_sex_dep_vs_sex_chr_dependent_CFD.R
 # GO annotation
 # Sex chromosome enrichment
 scripts/asymmetric_coupling.R
-```
-
-### Estimate regulatory and sequence divergence for X-Y gametologs
-
-* **Key libraries:** biomaRt
-
-```
-# Load sequences and estimate similarity/divergence measures
-scripts/evolutionary_divergence.R
 ```
 
 ### Estimate expression-weighted asymmetric coupling
@@ -153,7 +153,7 @@ scripts/exp_weighted_asymmetric_coupling.R
 scripts/CLIP.R
 ```
 
-### Compare asymmetric X-Y coupling to sex-biased gene expression
+### Compare asymmetric X-Y coupling to sex-biased gene expression and co-expression
 
 * **Key libraries:** limma, mashr
 
@@ -161,7 +161,7 @@ scripts/CLIP.R
 # estimate sex effects
 scripts/calc_sex_biased_expression.R
 # compare measures and visualize
-scripts/asymmetric_versus_sex_biased_expression.R
+scripts/asymmetric_versus_sex_bias.R
 ```
 
 ### Estimate sex differences in co-expression between X-coupled & Y-coupled genes
@@ -171,17 +171,6 @@ scripts/asymmetric_versus_sex_biased_expression.R
 scripts/sex_diff_Xcoupled_versus_Ycoupled.R
 ```
 
-### Perform GO/DO enrichments on asymmetric X-Y coupling
-
-* **Key libraries:** ggplot2
-
-```
-# GO and DO analyses
-scripts/GO_DO_coupling.R
-# visualize results
-scripts/visualize_GO_DO.R
-```
-
 ### ASD risk gene enrichment analyses
 
 * **Key libraries:** ggplot2
@@ -189,14 +178,5 @@ scripts/visualize_GO_DO.R
 ```
 # GO and DO analyses
 scripts/ASD_enrichments.R
-```
-
-### Compare to previous results 
-
-* **Key libraries:** ggplot2
-
-```
-# Load and visualize co-expression comparison
-scripts/compare_to_previous.R
 ```
 
