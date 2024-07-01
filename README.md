@@ -143,7 +143,7 @@ scripts/asymmetric_coupling.R
 
 ```
 # estimate expression-weighted asymmetric coupling
-scripts/exp_weighted_asymmetric_coupling.R
+scripts/exp_weighted_asym_coupling.R
 ```
 
 ### CLIP (significance of asymmetric coupling)
