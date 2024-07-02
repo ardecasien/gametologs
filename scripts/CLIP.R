@@ -391,8 +391,8 @@ out_xy = readRDS(file = 'out_xy.rds')
 out_xy$key = paste(out_xy$region, out_xy$gene.y, out_xy$gene.x, sep = "_")
 
 comp = merge(xy_clip_per_gam, out_xy, by = 'key')
-cor.test(comp$t, comp$diff, method = 'pearson') # 0.9192948
-cor.test(comp$t, comp$diff, method = 'spearman') # 0.9468689
+cor.test(comp$t, comp$diff, method = 'pearson') 
+cor.test(comp$t, comp$diff, method = 'spearman') 
 
 # check
 sig = subset(comp, padj_all < 0.05)
@@ -466,8 +466,8 @@ out_xy = readRDS(file = 'out_xy_weight.rds')
 out_xy$key = paste(out_xy$region, out_xy$gene.x, sep = "_")
 
 comp = merge(xy_clip, out_xy, by = 'key')
-cor.test(comp$t, comp$diff, method = 'pearson') # 0.8820767
-cor.test(comp$t, comp$diff, method = 'spearman') # 0.8854678
+cor.test(comp$t, comp$diff, method = 'pearson') 
+cor.test(comp$t, comp$diff, method = 'spearman') 
 
 ggplot(comp, aes(x = diff_xy_new, y = t)) +
   geom_point() + 
