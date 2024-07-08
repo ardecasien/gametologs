@@ -97,13 +97,14 @@ ggplot(combo_plot, aes(x = reorder(pair_genes,value), y = 1-value, fill = variab
 
 #### end ####
 
-#### Figure S6A ####
+#### Figure S6A | Table S6 ####
 
 combo_plot = readRDS(file = 'combo_plot_promoter_DNA_protein.rds')
 combo_plot$value = 1 - combo_plot$value
 corp = dcast(data = combo_plot,formula = pair_genes~variable,fun.aggregate = sum,value.var = "value")
 colnames(corp) = c('pair_genes','prom-all','prom-ng','DNA-sim','pro-sim')
 m = cor(corp[,c(2:5)])
+m
 corrplot.mixed(m, 
                order = 'AOE', 
                tl.col = 'black',
