@@ -89,7 +89,7 @@ table(mod$padj < 0.05, mod$V2 > 0)
 
 # Table S4
 
-write.csv(mod, file = 'sdced-vs-schdepced-per-tissue-correlations.csv')
+write.csv(mod, file = 'abs-sdced-vs-schdepced-per-tissue-correlations.csv')
 
 #### end ####
 
@@ -150,6 +150,10 @@ View(mod)
 mod$padj = p.adjust(mod$V3)
 table(mod$V3 < 0.05, mod$V2 > 0)
 table(mod$padj < 0.05, mod$V2 > 0)
+
+# Table S4
+
+write.csv(mod, file = 'signed-sdced-vs-schdepced-per-tissue-correlations.csv')
 
 #### end ####
 
