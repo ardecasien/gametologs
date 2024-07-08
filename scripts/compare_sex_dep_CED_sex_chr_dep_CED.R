@@ -1,4 +1,4 @@
-#### Figure 2E S5 | Table S5 ####
+#### Figure 2E S5 | Table S4 ####
 
 library(ggplot2)
 library(egg)
@@ -87,13 +87,13 @@ mod$padj = p.adjust(mod$V3)
 table(mod$V3 < 0.05, mod$V2 > 0)
 table(mod$padj < 0.05, mod$V2 > 0)
 
-# Table S5
+# Table S4
 
 write.csv(mod, file = 'sdced-vs-schdepced-per-tissue-correlations.csv')
 
 #### end ####
 
-#### Figure S5 | Table S5 ####
+#### Figure S5 ####
 
 out_gam = readRDS('out_gam_signed_norm.rds')
 out_gam2 = out_gam
@@ -150,10 +150,6 @@ View(mod)
 mod$padj = p.adjust(mod$V3)
 table(mod$V3 < 0.05, mod$V2 > 0)
 table(mod$padj < 0.05, mod$V2 > 0)
-
-# Table S5
-
-write.csv(mod, file = 'sdced-vs-schdepced-per-tissue-correlations.csv')
 
 #### end ####
 
