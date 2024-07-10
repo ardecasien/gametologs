@@ -455,7 +455,7 @@ ggplot(pl, aes(x = `n().x`, y = `n().y`)) +
 
 #### end ####
 
-#### compare CLIP to differential X-Y coupling (weighted avg per gene x tissue)  ####
+#### compare CLIP to differential X-Y coupling (weighted avg per gene x tissue) | Table S11 ####
 
 xy_clip = readRDS('xy_clip.rds')
 xy_clip$tissue = factor(xy_clip$tissue)
@@ -468,6 +468,10 @@ out_xy$key = paste(out_xy$region, out_xy$gene.x, sep = "_")
 comp = merge(xy_clip, out_xy, by = 'key')
 cor.test(comp$t, comp$diff, method = 'pearson') 
 cor.test(comp$t, comp$diff, method = 'spearman') 
+
+# Table S11
+
+write.csv(comp, file = 'exp-weighted-avg-diff-coupling.csv')
 
 ggplot(comp, aes(x = diff_xy_new, y = t)) +
   geom_point() + 
@@ -789,6 +793,21 @@ comp$bias = ifelse(comp$padj_all > 0.05, 'none', comp$bias)
 comp$bias = factor(comp$bias)
 table(comp$bias)
 
+k = comp %>% group_by(chrom, ensembl_gene_id, bias) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+k = subset(k, bias != 'none')
+k2 = k %>% group_by(chrom, ensembl_gene_id) %>% summarise(freq_bias = sum(freq))
+table(k2$chrom)
+
+k2 %>% group_by(chrom) %>% summarise(mean = mean(freq_bias))
+
+ggplot(k2, aes(x = chrom, y = freq_bias)) +
+  geom_boxplot() +
+  theme_article()
+
+mod = aov(freq_bias ~ chrom, data = k2)
+summary(mod)
+TukeyHSD(mod)
+
 length(unique(comp$gene.x))
 length(unique(subset(comp, padj_all < 0.05)$gene.x))
 length(unique(subset(comp, padj_all < 0.05 & diff > 0)$gene.x))
@@ -821,6 +840,7 @@ ggplot(pl, aes(x = gene_pair, y = diff, fill = chrom)) +
 
 hh = pl %>% group_by(chrom, bias, gene_pair) %>% summarise(mean = mean(diff))
 pl$gene_pair = factor(pl$gene_pair)
+
 out = data.frame()
 for(i in 1:length(short.listnow)){
   for(j in 1:length(levels(pl$gene_pair))){
@@ -835,13 +855,61 @@ for(i in 1:length(short.listnow)){
     out = rbind(out, o)
   }}
 }
-
 View(out)
+
+out = data.frame()
+out2 = data.frame()
+for(i in 1:length(levels(pl$gene_pair))){
+    d = subset(pl, gene_pair == levels(pl$gene_pair)[i])
+    if(dim(d)[1] == 0) {print('not analyzed')} else {
+      mod = aov(abs(diff) ~ chrom, data = d)
+      s = summary(mod)
+      tu = TukeyHSD(mod)
+      o2 = data.frame(tu$chrom)
+      o2$gene_pair = levels(pl$gene_pair)[i]
+      o2$var = rownames(o2)
+      rownames(o2) = NULL
+      out2 = rbind(out2, o2)
+      o = data.frame(s[[1]])
+      o$gene_pair = levels(pl$gene_pair)[i]
+      o$var = rownames(o)
+      rownames(o) = NULL
+      out = rbind(out, o)
+    }
+}
+out = subset(out, var == out$var[1])
+out$padj = p.adjust(out$Pr..F.)
+View(subset(out, padj < 0.05))
+View(subset(out2, p.adj < 0.05))
+
+
+out = data.frame()
+out2 = data.frame()
+for(i in 1:length(short.listnow)){
+  d = subset(pl, tissue == short.listnow[i])
+  if(dim(d)[1] == 0) {print('not analyzed')} else {
+    mod = aov(abs(diff) ~ chrom, data = d)
+    s = summary(mod)
+    tu = TukeyHSD(mod)
+    o2 = data.frame(tu$chrom)
+    o2$tissue = short.listnow[i]
+    o2$var = rownames(o2)
+    rownames(o2) = NULL
+    out2 = rbind(out2, o2)
+    o = data.frame(s[[1]])
+    o$tissue = short.listnow[i]
+    o$var = rownames(o)
+    rownames(o) = NULL
+    out = rbind(out, o)
+  }
+}
+out = subset(out, var == out$var[1])
+out$padj = p.adjust(out$Pr..F.)
+View(subset(out, padj < 0.05))
+View(subset(out2, p.adj < 0.05))
 
 table(pl$bias)
 table(pl$chrom)
 chisq.test(pl$chrom, pl$bias)
 
 #### end ####
-
-
