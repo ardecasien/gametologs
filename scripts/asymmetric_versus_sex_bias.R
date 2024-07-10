@@ -23,6 +23,10 @@ colnames(mash.res) = c('gene','tissue','beta','lfsr')
 mash.res$key = paste(mash.res$tissue, mash.res$gene, sep = '_')
 dim(mash.res)
 
+# Table S20
+
+write.csv(mash.res, file = 'mash.res.csv')
+
 # load CLIP sig diff summed X-Y coupling (per gene per tissue)
 
 xy_clip = readRDS(file = 'xy_clip.rds')
@@ -41,7 +45,7 @@ dim(out_xy_weight)
 out_xy_weight = merge(out_xy_weight, xy_clip, by = 'key')
 dim(out_xy_weight)
 
-# Table SX
+# Table S11
 
 write.csv(out_xy_weight, file = 'out_xy_weight.csv')
 
@@ -65,7 +69,12 @@ gam_bm = getBM(attributes = c("external_gene_name","ensembl_gene_id", "chromosom
 Ygenes = subset(gam_bm, chromosome_name == 'Y')
 Xgenes = subset(gam_bm, chromosome_name == 'X')
 
-pl = subset(combo, lfsr < 0.05 & padj < 0.05 & gene.x %!in% Ygenes$ensembl_gene_id & gene.x %in% gam_bm$ensembl_gene_id)
+pl = subset(combo, lfsr < 0.05 # sex-biased
+                    & padj < 0.05 # asymmetrically coupled
+                    & gene.x %!in% Ygenes$ensembl_gene_id # no Y chr
+                    & gene.x %!in% Xgenes$ensembl_gene_id # no X chr
+                    & gene.x %in% gam_bm$ensembl_gene_id)
+
 cor.test(pl$beta, -pl$diff_xy_new, method = 'spearman')
 
 pl$code = ifelse(pl$diff_xy_new > 0 & pl$beta < 0, 'concordant', 'discordant')
@@ -125,7 +134,7 @@ r$padj = p.adjust(r$V4, method = 'BH')
 r
 table(r$V3 > 0, r$padj < 0.05)
 
-# Table SX
+# Table S21
 
 write.csv(r, file = 'sex-bias-cor-per-tissue.csv')
 
