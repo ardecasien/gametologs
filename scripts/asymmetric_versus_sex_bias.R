@@ -160,7 +160,7 @@ dim(clip)
 out_xy_weight = merge(out_xy_weight, clip, by = 'key')
 
 ## load hartman
-## SexbiasCallNr	= How often is the gene called sex-biased out of the 100 different permutations
+## SexbiasCallNr = How often is the gene called sex-biased out of the 100 different permutations
 hart = read.csv('hartman2021.csv')
 hart$key = paste(hart$Tissue, hart$Ensembl, sep = '_')
 table(hart$Tissue, hart$Bias)
@@ -184,7 +184,6 @@ combo = merge(combo, gam_bm, by = 'ensembl_gene_id', all.x = T)
 combo$coup = ifelse(combo$diff_xy_new > 0, 'X', 'Y')
 
 ## coupling cutoff
-#combo = subset(combo, padj >= 0.05)
 combo$Bias = ifelse(combo$padj > 0.05, "none", combo$Bias)
 
 ## coexp cutoff
@@ -238,7 +237,7 @@ fY = matrix(c(dim(YandF)[1], dim(justF)[1], dim(justY)[1], dim(neither)[1]), nro
 fY
 fisher.test(fY, alternative = 'greater')
 
-## code and test for each tissue
+## test for each tissue
 
 res = data.frame()
 
@@ -308,6 +307,8 @@ res$FYpadj = p.adjust(res$`F Y P`, method = 'BH')
 res$MYpadj = p.adjust(res$`M Y P`, method = 'BH')
 
 View(res)
+
+# Table S22
 
 write.csv(res, file = 'hartman_comparison.csv')
 
