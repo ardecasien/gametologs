@@ -83,6 +83,9 @@ combo_plot = rbind(gam_list_unique_new_plot,skalet_plot)
 saveRDS(combo_plot, file = 'combo_plot_promoter_DNA_protein.rds')
 
 simout = dcast(combo_plot, pair_genes ~ variable, value.var = 'value')
+
+# Table S5
+
 write.csv(simout, file = 'similarity_measures.csv')
 
 ggplot(combo_plot, aes(x = reorder(pair_genes,value), y = 1-value, fill = variable)) +
@@ -103,12 +106,14 @@ combo_plot = readRDS(file = 'combo_plot_promoter_DNA_protein.rds')
 combo_plot$value = 1 - combo_plot$value
 corp = dcast(data = combo_plot,formula = pair_genes~variable,fun.aggregate = sum,value.var = "value")
 colnames(corp) = c('pair_genes','prom-all','prom-ng','DNA-sim','pro-sim')
+corp
 m = cor(corp[,c(2:5)])
 m
 corrplot.mixed(m, 
                order = 'AOE', 
                tl.col = 'black',
                tl.pos = 'd')
+cor.mtest(corp[,c(2:5)])
 
 #### end ####
 
